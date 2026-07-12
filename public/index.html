@@ -591,7 +591,7 @@
                 }
 
                 getCurrentLyrics() {
-                    if (!this.currentLyricIndex) this.currentLyricIndex = 0;
+                    if (this.currentLyricIndex === undefined) this.currentLyricIndex = 0;
                     const currentTime = this.audio.currentTime;
                     
                     // Advance index forward
@@ -683,9 +683,7 @@
                         p.y += p.vy;
                         const opacityDelta = (Math.sin(this.time * 0.01 + p.depth) - 0.5) * 0.001;
                         p.opacity += opacityDelta;
-                        if (p.opacity < 0.1 || p.opacity > 0.6) {
-                            p.opacity = Math.max(0.1, Math.min(0.6, p.opacity));
-                        }
+                        p.opacity = Math.max(0.1, Math.min(0.6, p.opacity));
                         if (p.x < 0) p.x = this.canvas.width;
                         if (p.x > this.canvas.width) p.x = 0;
                         if (p.y < 0) p.y = this.canvas.height;
@@ -865,11 +863,6 @@
                 renderWaveMode(element) {
                     this.wavePulse += 0.05;
                     const chars = this.currentLine.split('');
-                    const escapeHtml = (str) => {
-                        const div = document.createElement('div');
-                        div.textContent = str;
-                        return div.innerHTML;
-                    };
                     element.innerHTML = chars.map((char, i) => {
                         const offset = Math.sin(this.wavePulse + i * 0.3) * 20;
                         const opacity = 0.7 + Math.sin(this.wavePulse + i * 0.2) * 0.3;
@@ -877,6 +870,12 @@
                     }).join('');
                 }
             }
+
+            // Efficient HTML escaping function
+            const escapeHtml = (str) => {
+                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+                return str.split('').map(c => map[c] || c).join('');
+            };
 
             // ControlsManager - File handling and UI management
             class ControlsManager {
@@ -960,10 +959,6 @@
                     lyricsRenderer.render(document.getElementById('lyrics-text'));
                     const progressPercent = (audioEngine.currentTime / audioEngine.duration) * 100 || 0;
                     document.getElementById('progress-bar').style.width = progressPercent + '%';
-                    const formatTime = (seconds) => {
-                        const s = Math.floor(seconds);
-                        return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
-                    };
                     document.getElementById('time-display').textContent = formatTime(audioEngine.currentTime) + ' / ' + formatTime(audioEngine.duration);
                     const controlsPanel = document.getElementById('controls-panel');
                     if (audioEngine.isPlaying && audioEngine.duration > 0) {
@@ -1045,15 +1040,18 @@
                 });
 
                 // Touch to show controls
-                let touchTimeout;
                 document.addEventListener('touchstart', () => {
                     document.getElementById('controls-panel').classList.remove('hidden');
-                    clearTimeout(touchTimeout);
-                    touchTimeout = setTimeout(() => {
-                        if (audioEngine.isPlaying) {
+                    if (hideControlsTimeout) {
+                        clearTimeout(hideControlsTimeout);
+                        hideControlsTimeout = null;
+                    }
+                    if (audioEngine.isPlaying) {
+                        hideControlsTimeout = setTimeout(() => {
                             document.getElementById('controls-panel').classList.add('hidden');
-                        }
-                    }, 5000);
+                            hideControlsTimeout = null;
+                        }, 5000);
+                    }
                 });
 
                 // Paste lyrics
