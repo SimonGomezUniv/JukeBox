@@ -489,7 +489,7 @@
                     };
                     window.addEventListener('pointermove', (e) => update(e.clientX, e.clientY), { passive: true });
                     window.addEventListener('touchmove', (e) => {
-                        const touch = e.touches?.[0];
+                        const touch = e.touches[0];
                         if (touch) update(touch.clientX, touch.clientY);
                     }, { passive: true });
                 }
@@ -528,14 +528,13 @@
                     this.gainNode.connect(this.analyser);
                     this.analyser.connect(ctx.destination);
                     this.audio = new Audio();
-                    this.audio.addEventListener('ended', () => this.stop());
+                    this.audio.addEventListener('ended', () => { this.isPlaying = false; });
                     this.isPlaying = false;
                     this.lyrics = [];
                     this.currentLyricIndex = 0;
                 }
 
                 loadAudio(file) {
-                    if (this.source) this.source.stop();
                     this.audio.src = URL.createObjectURL(file);
                     this.audio.currentTime = 0;
                 }
@@ -544,7 +543,7 @@
                     const lines = text.split('\n');
                     this.lyrics = lines
                         .map(line => {
-                            const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+                            const match = line.match(/\[(\d+):(\d+(?:\.\d+)?)\](.*)/);
                             return match ? {
                                 time: parseInt(match[1]) * 60 + parseFloat(match[2]),
                                 text: match[3].trim()
@@ -592,8 +591,21 @@
                 }
 
                 getCurrentLyrics() {
-                    const current = this.lyrics.find(l => Math.abs(l.time - this.audio.currentTime) < 0.5);
-                    const next = this.lyrics.find(l => l.time > this.audio.currentTime);
+                    if (!this.currentLyricIndex) this.currentLyricIndex = 0;
+                    const currentTime = this.audio.currentTime;
+                    
+                    // Advance index forward
+                    while (this.currentLyricIndex < this.lyrics.length - 1 && 
+                           this.lyrics[this.currentLyricIndex + 1].time <= currentTime) {
+                        this.currentLyricIndex++;
+                    }
+                    
+                    const current = this.currentLyricIndex >= 0 && 
+                                   Math.abs(this.lyrics[this.currentLyricIndex].time - currentTime) < 0.5 
+                                   ? this.lyrics[this.currentLyricIndex] : null;
+                    const next = this.currentLyricIndex + 1 < this.lyrics.length 
+                               ? this.lyrics[this.currentLyricIndex + 1] : null;
+                    
                     return {
                         current: current?.text || '',
                         next: next?.text || ''
@@ -669,8 +681,11 @@
                     this.particles.forEach(p => {
                         p.x += p.vx;
                         p.y += p.vy;
-                        p.opacity += (Math.sin(this.time * 0.01 + p.depth) - 0.5) * 0.001;
-                        p.opacity = Math.max(0.1, Math.min(0.6, p.opacity));
+                        const opacityDelta = (Math.sin(this.time * 0.01 + p.depth) - 0.5) * 0.001;
+                        p.opacity += opacityDelta;
+                        if (p.opacity < 0.1 || p.opacity > 0.6) {
+                            p.opacity = Math.max(0.1, Math.min(0.6, p.opacity));
+                        }
                         if (p.x < 0) p.x = this.canvas.width;
                         if (p.x > this.canvas.width) p.x = 0;
                         if (p.y < 0) p.y = this.canvas.height;
@@ -841,17 +856,24 @@
                             element.style.filter = 'none';
                             break;
                     }
-                    if (this.mode !== 'wave') element.textContent = this.currentLine;
+                    if (this.mode !== 'wave') {
+                        element.textContent = this.currentLine;
+                    }
                     this.time++;
                 }
 
                 renderWaveMode(element) {
                     this.wavePulse += 0.05;
                     const chars = this.currentLine.split('');
+                    const escapeHtml = (str) => {
+                        const div = document.createElement('div');
+                        div.textContent = str;
+                        return div.innerHTML;
+                    };
                     element.innerHTML = chars.map((char, i) => {
                         const offset = Math.sin(this.wavePulse + i * 0.3) * 20;
                         const opacity = 0.7 + Math.sin(this.wavePulse + i * 0.2) * 0.3;
-                        return `<span class="wave-char" style="--index: ${i}; transform: translateY(${offset}px); opacity: ${opacity};">${char}</span>`;
+                        return `<span class="wave-char" style="--index: ${i}; transform: translateY(${offset}px); opacity: ${opacity};">${escapeHtml(char)}</span>`;
                     }).join('');
                 }
             }
@@ -909,7 +931,7 @@
                     try {
                         wakeLock = await navigator.wakeLock?.request('screen');
                     } catch (err) {
-                        console.log('Wake Lock not available');
+                        console.log('Wake Lock error:', err.message);
                     }
                 };
 
@@ -918,6 +940,13 @@
                         await wakeLock.release();
                         wakeLock = null;
                     }
+                };
+
+                // Initialize state outside animation loop
+                let hideControlsTimeout = null;
+                const formatTime = (seconds) => {
+                    const s = Math.floor(seconds);
+                    return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
                 };
 
                 // Main animation loop
@@ -931,17 +960,26 @@
                     lyricsRenderer.render(document.getElementById('lyrics-text'));
                     const progressPercent = (audioEngine.currentTime / audioEngine.duration) * 100 || 0;
                     document.getElementById('progress-bar').style.width = progressPercent + '%';
-                    const formatTime = (ms) => {
-                        const s = Math.floor(ms / 1000);
+                    const formatTime = (seconds) => {
+                        const s = Math.floor(seconds);
                         return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
                     };
                     document.getElementById('time-display').textContent = formatTime(audioEngine.currentTime) + ' / ' + formatTime(audioEngine.duration);
                     const controlsPanel = document.getElementById('controls-panel');
                     if (audioEngine.isPlaying && audioEngine.duration > 0) {
                         if (!controlsPanel.classList.contains('hidden')) {
-                            setTimeout(() => controlsPanel.classList.add('hidden'), 3000);
+                            if (!hideControlsTimeout) {
+                                hideControlsTimeout = setTimeout(() => {
+                                    controlsPanel.classList.add('hidden');
+                                    hideControlsTimeout = null;
+                                }, 3000);
+                            }
                         }
                     } else {
+                        if (hideControlsTimeout) {
+                            clearTimeout(hideControlsTimeout);
+                            hideControlsTimeout = null;
+                        }
                         controlsPanel.classList.remove('hidden');
                     }
                     const bassEnergy = frequency[0] / 255;
@@ -985,11 +1023,11 @@
                 });
 
                 document.getElementById('file-upload').addEventListener('change', (e) => {
-                    controlsManager.handleFileUpload(e.files[0]);
+                    controlsManager.handleFileUpload(e.target.files?.[0]);
                 });
 
                 document.getElementById('lrc-upload').addEventListener('change', (e) => {
-                    controlsManager.handleLrcUpload(e.files[0]);
+                    controlsManager.handleLrcUpload(e.target.files?.[0]);
                 });
 
                 // Drag and drop
