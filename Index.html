@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SonicGlass — Lecteur de paroles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,440;9..144,560&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#05060a;
+    --void-2:#0a0d14;
+    --glass:rgba(255,255,255,0.045);
+    --glass-strong:rgba(255,255,255,0.09);
+    --border:rgba(255,255,255,0.10);
+    --amber:#e7a85c;
+    --amber-soft:#f0c58c;
+    --cyan:#7fe0d6;
+    --ink:#f3efe6;
+    --muted:#8b8f9c;
+    --muted-2:#565b6a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    min-height:100dvh;
+    background:var(--void);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    overflow-x:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  #bg{
+    position:fixed; inset:0; width:100%; height:100%; z-index:0;
+    background:radial-gradient(ellipse at 50% 20%, #0e1220 0%, var(--void) 60%);
+  }
+  .stage{
+    position:relative; z-index:1;
+    width:100%;
+    max-width:460px;
+    padding:22px 16px 28px;
+  }
+  .glass-card{
+    position:relative;
+    border-radius:32px;
+    background:linear-gradient(180deg, var(--glass), rgba(255,255,255,0.02));
+    border:1px solid var(--border);
+    backdrop-filter:blur(22px) saturate(140%);
+    -webkit-backdrop-filter:blur(22px) saturate(140%);
+    box-shadow:
+      0 40px 80px -30px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    padding:26px 22px 22px;
+    overflow:hidden;
+    transition:box-shadow .3s ease;
+  }
+  .glass-card.dragover{
+    box-shadow:0 0 0 2px var(--amber), 0 40px 80px -30px rgba(0,0,0,0.7);
+  }
+  .eyebrow{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:18px;
+  }
+  .eyebrow .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--muted-2);
+    display:inline-block; margin-right:7px;
+    transition:background .3s, box-shadow .3s;
+  }
+  .eyebrow .dot.live{
+    background:var(--amber);
+    box-shadow:0 0 10px var(--amber);
+    animation:pulse-dot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+  .track-title{font-size:11px; color:var(--muted); max-width:70%; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+  /* Driver visualizer */
+  .driver-wrap{
+    position:relative;
+    width:168px; height:168px;
+    margin:4px auto 22px;
+  }
+  #driver{ position:absolute; inset:0; width:100%; height:100%; }
+  .driver-core{
+    position:absolute; inset:0; margin:auto;
+    width:54px; height:54px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--amber-soft), var(--amber) 55%, #7a4c1e 100%);
+    box-shadow:0 0 30px 4px rgba(231,168,92,0.35), inset 0 2px 6px rgba(255,255,255,0.4);
+    transition:transform .08s ease-out, box-shadow .12s ease-out;
+  }
+  .driver-core::after{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), transparent 60%);
+  }
+
+  /* Lyrics */
+  .lyrics-viewport{
+    position:relative;
+    height:168px;
+    overflow:hidden;
+    mask-image:linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%);
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%);
+  }
+  .lyrics-track{
+    position:absolute; left:0; right:0; top:0;
+    display:flex; flex-direction:column; align-items:center;
+    will-change:transform;
+    transition:transform .5s cubic-bezier(.22,.9,.3,1);
+  }
+  .lyric-line{
+    font-family:'Fraunces', serif;
+    font-weight:440;
+    text-align:center;
+    padding:9px 10px;
+    color:var(--muted-2);
+    font-size:15px;
+    letter-spacing:.01em;
+    filter:blur(1.5px);
+    opacity:.35;
+    transform:scale(.9);
+    transition:all .5s cubic-bezier(.22,.9,.3,1);
+    cursor:pointer;
+    max-width:340px;
+  }
+  .lyric-line:hover{ color:var(--muted); }
+  .lyric-line.near{ color:var(--muted); opacity:.55; filter:blur(0.5px); transform:scale(.94); font-size:16px;}
+  .lyric-line.active{
+    color:var(--ink);
+    opacity:1;
+    filter:blur(0);
+    transform:scale(1.08);
+    font-size:22px;
+    font-weight:560;
+    text-shadow:0 0 22px rgba(231,168,92,0.45), 0 0 2px rgba(255,255,255,0.3);
+  }
+  .lyrics-empty{
+    display:flex; align-items:center; justify-content:center; height:168px;
+    text-align:center; color:var(--muted-2); font-size:13px; line-height:1.6;
+    padding:0 30px;
+  }
+
+  /* Mode selector */
+  .mode-row{
+    display:flex; gap:6px; margin-bottom:10px;
+    overflow-x:auto; padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  .mode-row::-webkit-scrollbar{ display:none; }
+  .mode-btn{
+    flex:0 0 auto;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:10.5px; letter-spacing:.03em;
+    padding:6px 13px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--border);
+    color:var(--muted);
+    cursor:pointer;
+    transition:all .2s;
+    white-space:nowrap;
+  }
+  .mode-btn:hover{ color:var(--ink); border-color:rgba(255,255,255,0.24); }
+  .mode-btn.active{
+    color:#1a1206;
+    background:linear-gradient(180deg, var(--amber-soft), var(--amber));
+    border-color:transparent;
+  }
+
+  /* Single-line stage (karaoke / wave / neon / minimal) */
+  .line-stage{
+    height:100%;
+    display:flex; align-items:center; justify-content:center;
+    padding:0 6px;
+  }
+  .next-preview{
+    position:absolute; left:0; right:0; bottom:8px;
+    text-align:center;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--muted-2); opacity:.65;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    padding:0 22px;
+  }
+
+  /* Karaoke fill */
+  .karaoke-wrap{
+    position:relative;
+    display:inline-block;
+    max-width:100%;
+    white-space:nowrap;
+    font-family:'Fraunces', serif;
+    font-weight:520;
+    font-size:clamp(15px, 5vw, 21px);
+    line-height:1.3;
+  }
+  .karaoke-base{ display:block; color:rgba(255,255,255,0.16); }
+  .karaoke-overlay-wrap{
+    position:absolute; top:0; left:0; height:100%;
+    width:0%; overflow:hidden;
+  }
+  .karaoke-overlay{
+    display:block; color:var(--ink);
+    text-shadow:0 0 18px rgba(231,168,92,0.55);
+  }
+
+  /* Wave */
+  .wave-wrap{
+    display:flex; flex-wrap:wrap; justify-content:center;
+    font-family:'Fraunces', serif; font-weight:520;
+    font-size:clamp(16px, 5.5vw, 21px);
+    color:var(--ink);
+    max-width:360px;
+  }
+  .wave-char{
+    display:inline-block;
+    text-shadow:0 0 14px rgba(127,224,214,0.45);
+    animation:wave-bounce 1.7s ease-in-out infinite;
+    animation-delay:calc(var(--i, 0) * 0.045s);
+  }
+  @keyframes wave-bounce{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-7px); }
+  }
+
+  /* Neon */
+  .neon-line{
+    font-family:'Fraunces', serif; font-weight:560;
+    font-size:clamp(17px, 5.5vw, 22px);
+    text-align:center; color:#fff; max-width:340px;
+    text-shadow:
+      0 0 6px rgba(127,224,214,0.9),
+      0 0 18px rgba(127,224,214,0.65),
+      0 0 40px rgba(127,224,214,0.45);
+    animation:neon-flicker 3.4s ease-in-out infinite;
+  }
+  @keyframes neon-flicker{
+    0%,19%,21%,23%,54%,56%,100%{ opacity:1; }
+    20%,22%,55%{ opacity:.7; }
+  }
+
+  /* Minimal */
+  .minimal-line{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:500; font-size:16.5px; letter-spacing:.03em;
+    text-align:center; color:var(--muted); max-width:340px;
+    opacity:0; transform:translateY(8px);
+    transition:opacity .55s ease, transform .55s ease, color .55s ease;
+  }
+  .minimal-line.visible{ opacity:1; transform:translateY(0); color:var(--ink); }
+
+  /* Transport */
+  .transport{ margin-top:20px; }
+  .progress-row{ display:flex; align-items:center; gap:10px; }
+  .time{ font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums; width:34px; flex-shrink:0;}
+  .time.right{ text-align:right; }
+  .progress-bar{
+    position:relative; flex:1; height:16px; display:flex; align-items:center; cursor:pointer;
+  }
+  .progress-bar::before{
+    content:''; position:absolute; left:0; right:0; height:3px; border-radius:3px;
+    background:rgba(255,255,255,0.08);
+  }
+  .progress-fill{
+    position:absolute; left:0; height:3px; border-radius:3px; width:0%;
+    background:linear-gradient(90deg, var(--amber), var(--amber-soft));
+    box-shadow:0 0 8px rgba(231,168,92,0.5);
+  }
+  .progress-knob{
+    position:absolute; left:0%; width:11px; height:11px; border-radius:50%;
+    background:var(--ink); box-shadow:0 0 6px rgba(0,0,0,0.4);
+    transform:translateX(-50%); transition:transform .12s;
+  }
+  .progress-bar:active .progress-knob{ transform:translateX(-50%) scale(1.3); }
+
+  .controls-row{
+    display:flex; align-items:center; justify-content:center; gap:26px;
+    margin-top:16px;
+  }
+  .icon-btn{
+    background:none; border:none; color:var(--ink); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    opacity:.7; transition:opacity .2s, transform .15s;
+    padding:6px;
+  }
+  .icon-btn:hover{ opacity:1; }
+  .icon-btn:active{ transform:scale(.9); }
+  .play-btn{
+    width:56px; height:56px; border-radius:50%;
+    background:linear-gradient(180deg, var(--amber-soft), var(--amber));
+    color:#1a1206;
+    box-shadow:0 8px 24px -6px rgba(231,168,92,0.55), inset 0 1px 1px rgba(255,255,255,0.5);
+    opacity:1;
+  }
+  .play-btn svg{ width:20px; height:20px; }
+  .icon-btn svg{ width:18px; height:18px; }
+
+  .volume-row{ display:flex; align-items:center; gap:8px; margin-top:18px; }
+  input[type="range"].volume{
+    -webkit-appearance:none; appearance:none;
+    flex:1; height:3px; border-radius:3px;
+    background:rgba(255,255,255,0.1);
+    outline:none;
+  }
+  input[type="range"].volume::-webkit-slider-thumb{
+    -webkit-appearance:none; width:11px; height:11px; border-radius:50%;
+    background:var(--cyan); box-shadow:0 0 6px rgba(127,224,214,0.6);
+    cursor:pointer; margin-top:-4px;
+  }
+  input[type="range"].volume::-moz-range-thumb{
+    width:11px; height:11px; border-radius:50%; border:none;
+    background:var(--cyan); box-shadow:0 0 6px rgba(127,224,214,0.6); cursor:pointer;
+  }
+  input[type="range"].volume::-webkit-slider-runnable-track{ height:3px; border-radius:3px; }
+
+  /* Uploads */
+  .upload-row{
+    display:flex; gap:8px; margin-top:22px; flex-wrap:wrap;
+  }
+  .upload-btn{
+    flex:1; min-width:0;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11.5px; letter-spacing:.02em;
+    padding:11px 8px;
+    border-radius:14px;
+    background:var(--glass-strong);
+    border:1px solid var(--border);
+    color:var(--muted);
+    cursor:pointer;
+    transition:all .2s;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .upload-btn:hover{ color:var(--ink); border-color:rgba(255,255,255,0.22); }
+  .upload-btn.has-file{ color:var(--amber); border-color:rgba(231,168,92,0.35); }
+
+  .paste-panel{
+    margin-top:12px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .paste-panel.hidden{ display:none; }
+  #pasteArea{
+    width:100%; min-height:110px; resize:vertical;
+    background:rgba(0,0,0,0.25);
+    border:1px solid var(--border);
+    border-radius:14px;
+    color:var(--ink);
+    font-family:'Space Grotesk', monospace;
+    font-size:12px;
+    padding:12px;
+    outline:none;
+  }
+  #pasteArea::placeholder{ color:var(--muted-2); }
+  #pasteLoad{
+    align-self:flex-end;
+    background:var(--amber);
+    color:#1a1206;
+    border:none; border-radius:10px;
+    padding:8px 16px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:12px;
+    cursor:pointer;
+  }
+
+  .hint{
+    margin:16px 2px 0;
+    font-size:11px; line-height:1.6;
+    color:var(--muted-2);
+    text-align:center;
+  }
+
+  @media (max-width:380px){
+    .driver-wrap{ width:140px; height:140px; }
+    .lyric-line.active{ font-size:19px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .lyrics-track, .lyric-line{ transition:none !important; }
+    .eyebrow .dot.live{ animation:none; }
+  }
+
+  :focus-visible{ outline:2px solid var(--cyan); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<main class="stage">
+  <div class="glass-card" id="dropzone">
+    <div class="eyebrow">
+      <span><span class="dot" id="liveDot"></span>SonicGlass</span>
+      <span class="track-title" id="trackTitle">Aucun morceau</span>
+    </div>
+
+    <div class="driver-wrap">
+      <canvas id="driver"></canvas>
+      <div class="driver-core" id="driverCore"></div>
+    </div>
+
+    <div class="mode-row" id="modeRow">
+      <button class="mode-btn active" data-mode="float" type="button">Flottant</button>
+      <button class="mode-btn" data-mode="karaoke" type="button">Karaoké</button>
+      <button class="mode-btn" data-mode="wave" type="button">Vague</button>
+      <button class="mode-btn" data-mode="neon" type="button">Néon</button>
+      <button class="mode-btn" data-mode="minimal" type="button">Minimal</button>
+    </div>
+
+    <div class="lyrics-viewport" id="lyricsViewport">
+      <div class="lyrics-track" id="lyricsTrack"></div>
+    </div>
+
+    <div class="transport">
+      <div class="progress-row">
+        <span class="time" id="curTime">0:00</span>
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-knob" id="progressKnob"></div>
+        </div>
+        <span class="time right" id="durTime">0:00</span>
+      </div>
+
+      <div class="controls-row">
+        <button class="icon-btn" id="backBtn" aria-label="Reculer de 10 secondes" title="-10s">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 6V2L6 8l6 6V10c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+        </button>
+        <button class="icon-btn play-btn" id="playBtn" aria-label="Lecture">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+        <button class="icon-btn" id="fwdBtn" aria-label="Avancer de 10 secondes" title="+10s">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 6V2l6 6-6 6V10c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>
+        </button>
+      </div>
+
+      <div class="volume-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--muted)"><path d="M3 10v4h4l5 5V5L7 10H3z"/></svg>
+        <input type="range" class="volume" id="volume" min="0" max="1" step="0.01" value="0.8">
+      </div>
+    </div>
+
+    <div class="upload-row">
+      <label class="upload-btn" id="audioLabel">🎵 Audio
+        <input type="file" id="audioInput" accept="audio/*" hidden>
+      </label>
+      <label class="upload-btn" id="lyricsLabel">📝 Paroles
+        <input type="file" id="lyricsInput" accept=".lrc,.txt" hidden>
+      </label>
+      <button class="upload-btn" id="pasteBtn" type="button">✎ Coller</button>
+    </div>
+
+    <div class="paste-panel hidden" id="pastePanel">
+      <textarea id="pasteArea" placeholder="[00:12.30] première ligne&#10;[00:16.80] deuxième ligne&#10;&#10;(ou simplement du texte brut, une ligne par vers)"></textarea>
+      <button id="pasteLoad" type="button">Charger les paroles</button>
+    </div>
+
+    <p class="hint" id="hint">Glissez-déposez un fichier audio et un fichier .lrc directement sur la carte, ou utilisez les boutons ci-dessus. Cliquez sur une ligne de paroles pour sauter à ce moment.</p>
+  </div>
+</main>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+(function(){
+  "use strict";
+
+  const audio = document.getElementById('audio');
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  const pauseIcon = document.getElementById('pauseIcon');
+  const backBtn = document.getElementById('backBtn');
+  const fwdBtn = document.getElementById('fwdBtn');
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  const progressKnob = document.getElementById('progressKnob');
+  const curTimeEl = document.getElementById('curTime');
+  const durTimeEl = document.getElementById('durTime');
+  const volume = document.getElementById('volume');
+  const trackTitle = document.getElementById('trackTitle');
+  const liveDot = document.getElementById('liveDot');
+  const audioInput = document.getElementById('audioInput');
+  const lyricsInput = document.getElementById('lyricsInput');
+  const audioLabel = document.getElementById('audioLabel');
+  const lyricsLabel = document.getElementById('lyricsLabel');
+  const pasteBtn = document.getElementById('pasteBtn');
+  const pastePanel = document.getElementById('pastePanel');
+  const pasteArea = document.getElementById('pasteArea');
+  const pasteLoad = document.getElementById('pasteLoad');
+  const dropzone = document.getElementById('dropzone');
+  const lyricsViewport = document.getElementById('lyricsViewport');
+  const lyricsTrack = document.getElementById('lyricsTrack');
+  const modeRow = document.getElementById('modeRow');
+  const driverCanvas = document.getElementById('driver');
+  const driverCore = document.getElementById('driverCore');
+  const bgCanvas = document.getElementById('bg');
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let lyricsData = [];       // [{time, text}]
+  let pendingRawLyrics = null; // raw text waiting for duration (plain-text fallback)
+  let activeIndex = -1;
+  let displayMode = 'float'; // float | karaoke | wave | neon | minimal
+  let audioCtx = null, analyser = null, sourceNode = null, freqData = null;
+  let seeking = false;
+
+  // ---------- helpers ----------
+  function fmtTime(s){
+    if (!isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s/60);
+    const sec = Math.floor(s%60);
+    return m + ':' + String(sec).padStart(2,'0');
+  }
+
+  function parseLRC(text){
+    const lines = text.split(/\r?\n/);
+    const tag = /\[(\d{1,2}):(\d{2}(?:\.\d{1,3})?)\]/g;
+    const out = [];
+    let hasTimestamps = false;
+    for (const raw of lines){
+      tag.lastIndex = 0;
+      let m; const times = [];
+      while ((m = tag.exec(raw)) !== null){
+        times.push(parseInt(m[1],10)*60 + parseFloat(m[2]));
+      }
+      if (times.length){
+        hasTimestamps = true;
+        const txt = raw.replace(tag,'').trim();
+        for (const t of times) out.push({time:t, text: txt});
+      }
+    }
+    out.sort((a,b)=>a.time-b.time);
+    return hasTimestamps ? out : null;
+  }
+
+  function distributeEvenly(text, duration){
+    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    if (!lines.length) return [];
+    const dur = (isFinite(duration) && duration > 0) ? duration : lines.length * 3;
+    const step = dur / lines.length;
+    return lines.map((l,i)=>({ time: i*step, text: l }));
+  }
+
+  function loadLyricsFromText(text, isLRCFile){
+    const parsed = isLRCFile !== false ? parseLRC(text) : null;
+    if (parsed && parsed.length){
+      setLyrics(parsed);
+      pendingRawLyrics = null;
+    } else {
+      // no timestamps found -> distribute across duration (may need to wait for metadata)
+      if (isFinite(audio.duration) && audio.duration > 0){
+        setLyrics(distributeEvenly(text, audio.duration));
+        pendingRawLyrics = null;
+      } else {
+        pendingRawLyrics = text;
+        setLyrics([]);
+      }
+    }
+  }
+
+  function setLyrics(data){
+    lyricsData = data;
+    activeIndex = -1;
+    buildLyricsViewportForMode();
+  }
+
+  function setMode(mode){
+    displayMode = mode;
+    modeRow.querySelectorAll('.mode-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
+    activeIndex = -1;
+    buildLyricsViewportForMode();
+  }
+
+  modeRow.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => setMode(btn.dataset.mode));
+  });
+
+  function showEmptyLyrics(){
+    lyricsViewport.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'lyrics-empty';
+    empty.textContent = 'Aucune parole chargée. Ajoutez un fichier .lrc ou collez du texte.';
+    lyricsViewport.appendChild(empty);
+  }
+
+  function buildLyricsViewportForMode(){
+    if (!lyricsData.length){
+      showEmptyLyrics();
+      return;
+    }
+    lyricsViewport.innerHTML = '';
+    if (displayMode === 'float'){
+      lyricsViewport.appendChild(lyricsTrack);
+      buildFloatTrackContents();
+    } else {
+      const stage = document.createElement('div');
+      stage.className = 'line-stage';
+      stage.id = 'lineStage';
+      const preview = document.createElement('div');
+      preview.className = 'next-preview';
+      preview.id = 'nextPreview';
+      lyricsViewport.appendChild(stage);
+      lyricsViewport.appendChild(preview);
+    }
+    updateActiveLyric();
+  }
+
+  function buildFloatTrackContents(){
+    lyricsTrack.innerHTML = '';
+    lyricsData.forEach((line, i) => {
+      const div = document.createElement('div');
+      div.className = 'lyric-line';
+      div.textContent = line.text || '\u00A0';
+      div.dataset.index = i;
+      div.addEventListener('click', () => {
+        audio.currentTime = line.time;
+        if (audio.paused) audio.play().catch(()=>{});
+      });
+      lyricsTrack.appendChild(div);
+    });
+    // padding spacers so first/last lines can reach center
+    const padTop = document.createElement('div');
+    padTop.style.height = lyricsViewport.clientHeight/2 + 'px';
+    const padBottom = padTop.cloneNode();
+    lyricsTrack.insertBefore(padTop, lyricsTrack.firstChild);
+    lyricsTrack.appendChild(padBottom);
+  }
+
+  function updateActiveLyric(){
+    if (!lyricsData.length) return;
+    const t = audio.currentTime;
+    let idx = -1;
+    for (let i=0;i<lyricsData.length;i++){
+      if (lyricsData[i].time <= t + 0.05) idx = i; else break;
+    }
+    const changed = idx !== activeIndex;
+    activeIndex = idx;
+
+    if (displayMode === 'float'){
+      if (changed){
+        const children = lyricsTrack.querySelectorAll('.lyric-line');
+        children.forEach((el, i) => {
+          el.classList.remove('active','near');
+          if (i === activeIndex) el.classList.add('active');
+          else if (Math.abs(i - activeIndex) === 1) el.classList.add('near');
+        });
+      }
+      positionTrack();
+    } else if (changed){
+      updateSingleLineContent();
+    }
+  }
+
+  function positionTrack(){
+    const children = lyricsTrack.querySelectorAll('.lyric-line');
+    const el = children[Math.max(activeIndex,0)];
+    if (!el) { lyricsTrack.style.transform = 'translateY(0px)'; return; }
+    const viewportH = lyricsViewport.clientHeight;
+    const offset = el.offsetTop + el.offsetHeight/2 - viewportH/2;
+    lyricsTrack.style.transform = `translateY(${-offset}px)`;
+  }
+
+  function updateSingleLineContent(){
+    const stage = document.getElementById('lineStage');
+    const preview = document.getElementById('nextPreview');
+    if (!stage) return;
+    const line = activeIndex >= 0 ? lyricsData[activeIndex] : null;
+    const nextLine = lyricsData[activeIndex + 1];
+    if (preview) preview.textContent = nextLine ? nextLine.text : '';
+
+    stage.innerHTML = '';
+    const text = line ? (line.text || '') : '';
+
+    if (displayMode === 'karaoke'){
+      const wrap = document.createElement('div');
+      wrap.className = 'karaoke-wrap';
+      const base = document.createElement('span');
+      base.className = 'karaoke-base';
+      base.textContent = text;
+      const overlayWrap = document.createElement('div');
+      overlayWrap.className = 'karaoke-overlay-wrap';
+      overlayWrap.id = 'karaokeOverlayWrap';
+      const overlay = document.createElement('span');
+      overlay.className = 'karaoke-overlay';
+      overlay.textContent = text;
+      overlayWrap.appendChild(overlay);
+      wrap.appendChild(base);
+      wrap.appendChild(overlayWrap);
+      stage.appendChild(wrap);
+      updateKaraokeWipe();
+    } else if (displayMode === 'wave'){
+      const wrap = document.createElement('div');
+      wrap.className = 'wave-wrap';
+      [...text].forEach((ch, i) => {
+        const span = document.createElement('span');
+        span.className = 'wave-char';
+        span.style.setProperty('--i', i);
+        span.textContent = ch === ' ' ? '\u00A0' : ch;
+        wrap.appendChild(span);
+      });
+      stage.appendChild(wrap);
+    } else if (displayMode === 'neon'){
+      const div = document.createElement('div');
+      div.className = 'neon-line';
+      div.textContent = text;
+      stage.appendChild(div);
+    } else if (displayMode === 'minimal'){
+      const div = document.createElement('div');
+      div.className = 'minimal-line';
+      div.textContent = text;
+      stage.appendChild(div);
+      requestAnimationFrame(() => div.classList.add('visible'));
+    }
+  }
+
+  function updateKaraokeWipe(){
+    if (displayMode !== 'karaoke' || activeIndex < 0) return;
+    const overlayWrap = document.getElementById('karaokeOverlayWrap');
+    if (!overlayWrap) return;
+    const line = lyricsData[activeIndex];
+    const next = lyricsData[activeIndex + 1];
+    const start = line.time;
+    const end = next ? next.time : start + 4;
+    const frac = Math.min(1, Math.max(0, (audio.currentTime - start) / ((end - start) || 1)));
+    overlayWrap.style.width = (frac * 100) + '%';
+  }
+
+  // ---------- audio graph ----------
+  function ensureAudioGraph(){
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    sourceNode = audioCtx.createMediaElementSource(audio);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 128;
+    analyser.smoothingTimeConstant = 0.75;
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    sourceNode.connect(analyser);
+    analyser.connect(audioCtx.destination);
+  }
+
+  // ---------- transport ----------
+  function togglePlay(){
+    if (!audio.src){
+      audioInput.click();
+      return;
+    }
+    ensureAudioGraph();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (audio.paused) audio.play().catch(()=>{});
+    else audio.pause();
+  }
+
+  playBtn.addEventListener('click', togglePlay);
+  backBtn.addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 10); });
+  fwdBtn.addEventListener('click', () => { audio.currentTime = Math.min(audio.duration||0, audio.currentTime + 10); });
+
+  audio.addEventListener('play', () => {
+    playIcon.style.display = 'none';
+    pauseIcon.style.display = '';
+    liveDot.classList.add('live');
+  });
+  audio.addEventListener('pause', () => {
+    playIcon.style.display = '';
+    pauseIcon.style.display = 'none';
+    liveDot.classList.remove('live');
+  });
+  audio.addEventListener('ended', () => {
+    playIcon.style.display = '';
+    pauseIcon.style.display = 'none';
+    liveDot.classList.remove('live');
+  });
+
+  audio.addEventListener('loadedmetadata', () => {
+    durTimeEl.textContent = fmtTime(audio.duration);
+    if (pendingRawLyrics){
+      setLyrics(distributeEvenly(pendingRawLyrics, audio.duration));
+      pendingRawLyrics = null;
+    }
+  });
+
+  audio.addEventListener('timeupdate', () => {
+    if (seeking) return;
+    curTimeEl.textContent = fmtTime(audio.currentTime);
+    const pct = audio.duration ? (audio.currentTime/audio.duration)*100 : 0;
+    progressFill.style.width = pct + '%';
+    progressKnob.style.left = pct + '%';
+    updateActiveLyric();
+  });
+
+  function seekFromEvent(e){
+    const rect = progressBar.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let pct = (clientX - rect.left) / rect.width;
+    pct = Math.min(1, Math.max(0, pct));
+    if (isFinite(audio.duration)) audio.currentTime = pct * audio.duration;
+    progressFill.style.width = (pct*100) + '%';
+    progressKnob.style.left = (pct*100) + '%';
+  }
+  progressBar.addEventListener('mousedown', (e) => { seeking = true; seekFromEvent(e); });
+  window.addEventListener('mousemove', (e) => { if (seeking) seekFromEvent(e); });
+  window.addEventListener('mouseup', () => { seeking = false; });
+  progressBar.addEventListener('touchstart', (e) => { seeking = true; seekFromEvent(e); }, {passive:true});
+  progressBar.addEventListener('touchmove', (e) => { if (seeking) seekFromEvent(e); }, {passive:true});
+  window.addEventListener('touchend', () => { seeking = false; });
+
+  volume.addEventListener('input', () => { audio.volume = parseFloat(volume.value); });
+  audio.volume = parseFloat(volume.value);
+
+  window.addEventListener('keydown', (e) => {
+    if (document.activeElement === pasteArea) return;
+    if (e.code === 'Space'){ e.preventDefault(); togglePlay(); }
+  });
+
+  window.addEventListener('resize', positionTrack);
+
+  // ---------- file loading ----------
+  function loadAudioFile(file){
+    const url = URL.createObjectURL(file);
+    audio.src = url;
+    trackTitle.textContent = file.name.replace(/\.[^/.]+$/, '');
+    audioLabel.classList.add('has-file');
+    audio.load();
+  }
+
+  function loadLyricsFile(file){
+    const isLRC = /\.lrc$/i.test(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      loadLyricsFromText(reader.result, isLRC || /\[\d{1,2}:\d{2}/.test(reader.result));
+      lyricsLabel.classList.add('has-file');
+    };
+    reader.readAsText(file);
+  }
+
+  audioInput.addEventListener('change', (e) => { if (e.target.files[0]) loadAudioFile(e.target.files[0]); });
+  lyricsInput.addEventListener('change', (e) => { if (e.target.files[0]) loadLyricsFile(e.target.files[0]); });
+
+  pasteBtn.addEventListener('click', () => { pastePanel.classList.toggle('hidden'); });
+  pasteLoad.addEventListener('click', () => {
+    const txt = pasteArea.value;
+    if (!txt.trim()) return;
+    loadLyricsFromText(txt, true);
+    lyricsLabel.classList.add('has-file');
+    pastePanel.classList.add('hidden');
+  });
+
+  // drag & drop
+  ['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); dropzone.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); dropzone.classList.remove('dragover');
+  }));
+  dropzone.addEventListener('drop', (e) => {
+    const files = Array.from(e.dataTransfer.files || []);
+    for (const f of files){
+      if (f.type.startsWith('audio/')) loadAudioFile(f);
+      else if (/\.(lrc|txt)$/i.test(f.name)) loadLyricsFile(f);
+    }
+  });
+
+  // ---------- visualizer ----------
+  function sizeCanvas(canvas){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, rect.width * dpr);
+    canvas.height = Math.max(1, rect.height * dpr);
+    return dpr;
+  }
+
+  let driverDpr = 1, bgDpr = 1;
+  function resizeAll(){
+    driverDpr = sizeCanvas(driverCanvas);
+    bgCanvas.width = window.innerWidth * (bgDpr = Math.min(window.devicePixelRatio||1,2));
+    bgCanvas.height = window.innerHeight * bgDpr;
+  }
+  window.addEventListener('resize', resizeAll);
+  resizeAll();
+
+  const dctx = driverCanvas.getContext('2d');
+  const bctx = bgCanvas.getContext('2d');
+
+  const blobs = [
+    { x:0.28, y:0.32, r:0.42, color:'127,224,214', speed:0.00021, phase:0 },
+    { x:0.72, y:0.28, r:0.38, color:'231,168,92', speed:0.00017, phase:2.1 },
+    { x:0.5, y:0.75, r:0.46, color:'231,168,92', speed:0.00013, phase:4.4 }
+  ];
+
+  let bassEnergy = 0;
+
+  function drawBackground(t){
+    const w = bgCanvas.width, h = bgCanvas.height;
+    bctx.clearRect(0,0,w,h);
+    bctx.fillStyle = '#05060a';
+    bctx.fillRect(0,0,w,h);
+    const boost = 1 + bassEnergy * 0.6;
+    blobs.forEach(b => {
+      const x = (b.x + Math.sin(t*b.speed + b.phase)*0.08) * w;
+      const y = (b.y + Math.cos(t*b.speed*1.3 + b.phase)*0.08) * h;
+      const r = b.r * Math.min(w,h) * boost;
+      const grad = bctx.createRadialGradient(x,y,0,x,y,r);
+      grad.addColorStop(0, `rgba(${b.color},${0.16 + bassEnergy*0.12})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      bctx.fillStyle = grad;
+      bctx.beginPath();
+      bctx.arc(x,y,r,0,Math.PI*2);
+      bctx.fill();
+    });
+  }
+
+  function drawDriver(t){
+    const w = driverCanvas.width, h = driverCanvas.height;
+    dctx.clearRect(0,0,w,h);
+    const cx = w/2, cy = h/2;
+    const baseR = Math.min(w,h) * 0.30;
+    const outerR = Math.min(w,h) * 0.49;
+
+    // faint outer ring (glass rim)
+    dctx.beginPath();
+    dctx.arc(cx, cy, outerR, 0, Math.PI*2);
+    dctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    dctx.lineWidth = 1 * driverDpr;
+    dctx.stroke();
+
+    let bass = 0;
+    const bars = 40;
+    if (analyser && !audio.paused){
+      analyser.getByteFrequencyData(freqData);
+      for (let i=0;i<8;i++) bass += freqData[i];
+      bass = bass / 8 / 255;
+    }
+    bassEnergy += (bass - bassEnergy) * 0.15;
+
+    for (let i=0;i<bars;i++){
+      const angle = (i/bars) * Math.PI*2 + t*0.00012;
+      let v = 0.12;
+      if (analyser && !audio.paused){
+        const bin = Math.floor((i/bars) * freqData.length * 0.7);
+        v = (freqData[bin] || 0) / 255;
+      } else {
+        v = 0.10 + Math.sin(t*0.0015 + i)*0.03;
+      }
+      const len = (outerR - baseR) * (0.15 + v*0.95);
+      const x1 = cx + Math.cos(angle) * baseR;
+      const y1 = cy + Math.sin(angle) * baseR;
+      const x2 = cx + Math.cos(angle) * (baseR + len);
+      const y2 = cy + Math.sin(angle) * (baseR + len);
+      dctx.beginPath();
+      dctx.moveTo(x1,y1);
+      dctx.lineTo(x2,y2);
+      const mixC = i % 2 === 0 ? '231,168,92' : '127,224,214';
+      dctx.strokeStyle = `rgba(${mixC}, ${0.35 + v*0.55})`;
+      dctx.lineWidth = 2 * driverDpr;
+      dctx.lineCap = 'round';
+      dctx.stroke();
+    }
+
+    const scale = 1 + bassEnergy * 0.18;
+    driverCore.style.transform = `scale(${scale})`;
+    driverCore.style.boxShadow = `0 0 ${28 + bassEnergy*38}px ${4 + bassEnergy*10}px rgba(231,168,92,${0.28 + bassEnergy*0.3}), inset 0 2px 6px rgba(255,255,255,0.4)`;
+  }
+
+  function loop(t){
+    drawBackground(t);
+    drawDriver(t);
+    updateKaraokeWipe();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  showEmptyLyrics();
+})();
+</script>
+</body>
+</html>
