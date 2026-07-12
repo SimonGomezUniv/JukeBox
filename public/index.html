@@ -23,7 +23,6 @@
             color: #fff;
         }
 
-        /* CSS Variables - Premium Palette */
         :root {
             --bg: #0a0e27;
             --bg-2: #141829;
@@ -56,7 +55,6 @@
             justify-content: center;
         }
 
-        /* Background Canvas - Animated Nebula */
         #background-canvas {
             position: fixed;
             top: 0;
@@ -67,7 +65,6 @@
             filter: brightness(1) contrast(1.1);
         }
 
-        /* Main Container */
         .container {
             position: relative;
             z-index: 10;
@@ -81,7 +78,6 @@
             overflow: hidden;
         }
 
-        /* Main Content Area */
         .content-area {
             position: relative;
             z-index: 20;
@@ -95,19 +91,14 @@
             perspective: 1200px;
         }
 
-        /* Glassmorphism Base */
         .glass {
             background: rgba(20, 24, 41, 0.3);
             backdrop-filter: blur(20px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 1px rgba(255, 255, 255, 0.2),
-                inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
         }
 
-        /* Speaker Visualizer Container */
         .visualizer-section {
             position: relative;
             z-index: 25;
@@ -126,7 +117,6 @@
             filter: drop-shadow(0 0 20px rgba(0, 217, 255, calc(0.3 + var(--bloom) * 0.3)));
         }
 
-        /* Lyrics Display */
         .lyrics-display {
             position: relative;
             z-index: 25;
@@ -153,7 +143,6 @@
             transform: translateZ(0);
         }
 
-        /* Mode-specific lyric styles */
         .lyrics-floating {
             animation: float-lyrics 3s ease-out infinite;
             text-shadow: 0 0 20px rgba(0, 217, 255, 0.6), 0 0 40px rgba(99, 102, 241, 0.3);
@@ -176,11 +165,7 @@
         }
 
         .lyrics-neon {
-            text-shadow: 
-                0 0 10px var(--accent),
-                0 0 20px var(--accent),
-                0 0 30px var(--accent-2),
-                0 0 40px var(--accent-2);
+            text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent), 0 0 30px var(--accent-2), 0 0 40px var(--accent-2);
             animation: neon-flicker 2s ease-in-out infinite;
             font-weight: 600;
             letter-spacing: 2px;
@@ -208,76 +193,38 @@
             animation: minimal-fade 2s ease-in-out;
         }
 
-        /* Animations */
         @keyframes float-lyrics {
-            0%, 100% {
-                transform: translateY(0) translateZ(20px) scaleY(1);
-                opacity: 1;
-            }
-            50% {
-                transform: translateY(-15px) translateZ(40px) scaleY(1.05);
-                opacity: 0.9;
-            }
+            0%, 100% { transform: translateY(0) translateZ(20px) scaleY(1); opacity: 1; }
+            50% { transform: translateY(-15px) translateZ(40px) scaleY(1.05); opacity: 0.9; }
         }
 
         @keyframes karaoke-pulse {
-            0%, 100% {
-                filter: drop-shadow(0 0 15px rgba(0, 217, 255, 0.6));
-                transform: scale(1);
-            }
-            50% {
-                filter: drop-shadow(0 0 25px rgba(0, 217, 255, 0.8));
-                transform: scale(1.02);
-            }
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(0, 217, 255, 0.6)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 25px rgba(0, 217, 255, 0.8)); transform: scale(1.02); }
         }
 
         @keyframes bd-slide {
-            0% {
-                transform: perspective(800px) rotateY(45deg) rotateX(20deg) translateX(50px);
-                opacity: 0;
-            }
-            100% {
-                transform: perspective(800px) rotateY(0deg) rotateX(0deg) translateX(0);
-                opacity: 1;
-            }
+            0% { transform: perspective(800px) rotateY(45deg) rotateX(20deg) translateX(50px); opacity: 0; }
+            100% { transform: perspective(800px) rotateY(0deg) rotateX(0deg) translateX(0); opacity: 1; }
         }
 
         @keyframes neon-flicker {
-            0%, 100% {
-                text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent);
-            }
-            5% {
-                text-shadow: 0 0 5px var(--accent);
-            }
-            10% {
-                text-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent-2);
-            }
+            0%, 100% { text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); }
+            5% { text-shadow: 0 0 5px var(--accent); }
+            10% { text-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent-2); }
         }
 
         @keyframes wave-motion {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-20px);
-            }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
         }
 
         @keyframes minimal-fade {
-            0% {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            50% {
-                opacity: 1;
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+            0% { opacity: 0; transform: scale(0.9); }
+            50% { opacity: 1; }
+            100% { opacity: 1; transform: scale(1); }
         }
 
-        /* Controls Panel */
         .controls-panel {
             position: fixed;
             bottom: 0;
@@ -302,7 +249,6 @@
             pointer-events: none;
         }
 
-        /* Progress Bar */
         .progress-bar {
             position: fixed;
             bottom: 0;
@@ -315,7 +261,6 @@
             box-shadow: 0 0 15px var(--accent);
         }
 
-        /* Control Buttons */
         .btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -355,7 +300,6 @@
             box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
         }
 
-        /* File Upload */
         #file-upload, #lrc-upload {
             display: none;
         }
@@ -369,7 +313,6 @@
             gap: 10px;
         }
 
-        /* Mode Selector */
         .mode-selector {
             position: fixed;
             top: 20px;
@@ -398,7 +341,6 @@
             border-color: var(--accent);
         }
 
-        /* Info Display */
         .info-bar {
             position: fixed;
             top: 20px;
@@ -419,7 +361,6 @@
             font-family: 'Space Grotesk', monospace;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .lyrics-display {
                 height: 150px;
@@ -453,25 +394,21 @@
             }
         }
 
-        /* Canvas for speaker visualization */
         canvas {
             max-width: 100%;
             height: auto;
             display: block;
         }
 
-        /* Prevent text selection */
         .content-area, .controls-panel {
             -webkit-user-select: none;
             user-select: none;
         }
 
-        /* Smooth scrolling */
         * {
             scroll-behavior: smooth;
         }
 
-        /* Accessibility */
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
@@ -482,13 +419,9 @@
     </style>
 </head>
 <body>
-    <!-- Background Canvas -->
     <canvas id="background-canvas"></canvas>
-
-    <!-- Main Container -->
     <div class="container">
         <div class="content-area">
-            <!-- Mode Selector -->
             <div class="mode-selector">
                 <button class="mode-btn active" data-mode="floating">Floating</button>
                 <button class="mode-btn" data-mode="karaoke">Karaoke</button>
@@ -498,32 +431,25 @@
                 <button class="mode-btn" data-mode="minimal">Minimal</button>
             </div>
 
-            <!-- Info Bar -->
             <div class="info-bar">
                 <span class="time-display" id="time-display">0:00 / 0:00</span>
             </div>
 
-            <!-- Upload Area -->
             <div class="upload-area">
                 <button class="btn" id="upload-audio-btn" title="Upload audio file">🎵 Audio</button>
                 <button class="btn" id="upload-lrc-btn" title="Upload lyrics file">📝 Lyrics</button>
             </div>
 
-            <!-- Visualizer Section -->
             <div class="visualizer-section">
                 <canvas id="speaker-canvas"></canvas>
             </div>
 
-            <!-- Lyrics Display -->
             <div class="lyrics-display">
-                <div class="lyrics-text lyrics-floating" id="lyrics-text">
-                    Now playing...
-                </div>
+                <div class="lyrics-text lyrics-floating" id="lyrics-text">Now playing...</div>
             </div>
         </div>
     </div>
 
-    <!-- Controls Panel -->
     <div class="controls-panel" id="controls-panel">
         <button class="btn" id="play-btn" title="Play / Pause">▶ Play</button>
         <button class="btn" id="stop-btn" title="Stop">⏹ Stop</button>
@@ -532,1112 +458,575 @@
         <input type="range" id="volume-slider" min="0" max="100" value="70" style="max-width: 100px; cursor: pointer;">
     </div>
 
-    <!-- Progress Bar -->
     <div class="progress-bar" id="progress-bar"></div>
 
-    <!-- File Input -->
     <input type="file" id="file-upload" accept="audio/*">
     <input type="file" id="lrc-upload" accept=".lrc,.txt">
 
     <script>
+        (() => {
+            'use strict';
 
-(() => {
-  'use strict';
+            // AnimationSystem - Handle frame-based animations
+            class AnimationSystem {
+                constructor(root) {
+                    this.root = root;
+                    this.callbacks = new Set();
+                    this.pointer = { targetX: 0, targetY: 0, x: 0, y: 0 };
+                    this.lastTime = performance.now();
+                    this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    this.onFrame = this.onFrame.bind(this);
+                    this.bindPointer();
+                    requestAnimationFrame(this.onFrame);
+                }
 
-  class AnimationSystem {
-    constructor(root) {
-      this.root = root;
-      this.callbacks = new Set();
-      this.pointer = { targetX: 0, targetY: 0, x: 0, y: 0 };
-      this.lastTime = performance.now();
-      this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      this.onFrame = this.onFrame.bind(this);
-      this.bindPointer();
-      requestAnimationFrame(this.onFrame);
-    }
+                bindPointer() {
+                    const update = (clientX, clientY) => {
+                        const x = clientX / Math.max(1, window.innerWidth);
+                        const y = clientY / Math.max(1, window.innerHeight);
+                        this.pointer.targetX = (x - 0.5) * 2;
+                        this.pointer.targetY = (y - 0.5) * 2;
+                    };
+                    window.addEventListener('pointermove', (e) => update(e.clientX, e.clientY), { passive: true });
+                    window.addEventListener('touchmove', (e) => {
+                        const touch = e.touches?.[0];
+                        if (touch) update(touch.clientX, touch.clientY);
+                    }, { passive: true });
+                }
 
-    bindPointer() {
-      const update = (clientX, clientY) => {
-        const x = clientX / Math.max(1, window.innerWidth);
-        const y = clientY / Math.max(1, window.innerHeight);
-        this.pointer.targetX = (x - 0.5) * 2;
-        this.pointer.targetY = (y - 0.5) * 2;
-      };
+                add(callback) {
+                    this.callbacks.add(callback);
+                    return () => this.callbacks.delete(callback);
+                }
 
-      window.addEventListener('pointermove', (event) => update(event.clientX, event.clientY), { passive: true });
-      window.addEventListener('touchmove', (event) => {
-        const touch = event.touches && event.touches[0];
-        if (touch) update(touch.clientX, touch.clientY);
-      }, { passive: true });
-    }
+                onFrame(now) {
+                    const dt = Math.min(0.05, Math.max(0.001, (now - this.lastTime) / 1000));
+                    this.lastTime = now;
+                    const smooth = this.prefersReducedMotion ? 0.12 : 0.06;
+                    this.pointer.x = this.damp(this.pointer.x, this.pointer.targetX, 1 / smooth, dt);
+                    this.pointer.y = this.damp(this.pointer.y, this.pointer.targetY, 1 / smooth, dt);
+                    this.root.style.setProperty('--tilt-x', `${(-this.pointer.y * 7).toFixed(2)}deg`);
+                    this.root.style.setProperty('--tilt-y', `${(this.pointer.x * 7).toFixed(2)}deg`);
+                    this.callbacks.forEach((cb) => cb(dt, now));
+                    requestAnimationFrame(this.onFrame);
+                }
 
-    add(callback) {
-      this.callbacks.add(callback);
-      return () => this.callbacks.delete(callback);
-    }
-
-    onFrame(now) {
-      const dt = Math.min(0.05, Math.max(0.001, (now - this.lastTime) / 1000));
-      this.lastTime = now;
-      const smooth = this.prefersReducedMotion ? 0.12 : 0.06;
-      this.pointer.x = this.damp(this.pointer.x, this.pointer.targetX, 1 / smooth, dt);
-      this.pointer.y = this.damp(this.pointer.y, this.pointer.targetY, 1 / smooth, dt);
-      this.root.style.setProperty('--tilt-x', `${(-this.pointer.y * 7).toFixed(2)}deg`);
-      this.root.style.setProperty('--tilt-y', `${(this.pointer.x * 7).toFixed(2)}deg`);
-      this.callbacks.forEach((callback) => callback(dt, now));
-      requestAnimationFrame(this.onFrame);
-    }
-
-    clamp(value, min, max) {
-      return Math.min(max, Math.max(min, value));
-    }
-
-    damp(current, target, lambda, dt) {
-      return current + (target - current) * (1 - Math.exp(-lambda * dt));
-    }
-
-    map(value, inMin, inMax, outMin, outMax) {
-      const safe = inMax - inMin || 1;
-      const t = this.clamp((value - inMin) / safe, 0, 1);
-      return outMin + (outMax - outMin) * t;
-    }
-  }
-
-  class AudioEngine {
-    constructor(audioElement, animationSystem) {
-      this.audio = audioElement;
-      this.animation = animationSystem;
-      this.context = null;
-      this.source = null;
-      this.analyser = null;
-      this.frequencyData = null;
-      this.waveformData = null;
-      this.metrics = {
-        bass: 0,
-        mid: 0,
-        treble: 0,
-        overall: 0,
-        pulse: 0,
-        waveform: [],
-        playing: false,
-        progress: 0
-      };
-    }
-
-    ensureGraph() {
-      if (this.context) return;
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) return;
-
-      this.context = new AudioContextClass();
-      this.source = this.context.createMediaElementSource(this.audio);
-      this.analyser = this.context.createAnalyser();
-      this.analyser.fftSize = 256;
-      this.analyser.smoothingTimeConstant = 0.86;
-      this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
-      this.waveformData = new Uint8Array(this.analyser.fftSize);
-      this.source.connect(this.analyser);
-      this.analyser.connect(this.context.destination);
-    }
-
-    async togglePlayback() {
-      if (!this.audio.src) return false;
-      this.ensureGraph();
-      if (this.context && this.context.state === 'suspended') {
-        await this.context.resume();
-      }
-      if (this.audio.paused) {
-        await this.audio.play();
-      } else {
-        this.audio.pause();
-      }
-      return true;
-    }
-
-    seek(time) {
-      if (!Number.isFinite(this.audio.duration)) return;
-      this.audio.currentTime = this.animation.clamp(time, 0, this.audio.duration || 0);
-    }
-
-    setVolume(value) {
-      this.audio.volume = this.animation.clamp(parseFloat(value) || 0, 0, 1);
-    }
-
-    sample(dt, now) {
-      let bassTarget = 0.02;
-      let midTarget = 0.02;
-      let trebleTarget = 0.02;
-      let overallTarget = 0.03;
-
-      if (this.analyser && this.frequencyData) {
-        this.analyser.getByteFrequencyData(this.frequencyData);
-        this.analyser.getByteTimeDomainData(this.waveformData);
-
-        const low = this.averageRange(0, 8) / 255;
-        const mid = this.averageRange(8, 28) / 255;
-        const high = this.averageRange(28, this.frequencyData.length) / 255;
-        const all = this.averageRange(0, this.frequencyData.length) / 255;
-
-        bassTarget = low;
-        midTarget = mid;
-        trebleTarget = high;
-        overallTarget = all;
-      } else {
-        const idle = this.audio.paused ? 0.04 : 0.08;
-        bassTarget = idle + Math.sin(now * 0.0012) * 0.015;
-        midTarget = idle + Math.sin(now * 0.0011 + 1) * 0.01;
-        trebleTarget = idle + Math.cos(now * 0.0014) * 0.01;
-        overallTarget = idle;
-      }
-
-      this.metrics.bass = this.animation.damp(this.metrics.bass, bassTarget, 8, dt);
-      this.metrics.mid = this.animation.damp(this.metrics.mid, midTarget, 7, dt);
-      this.metrics.treble = this.animation.damp(this.metrics.treble, trebleTarget, 7, dt);
-      this.metrics.overall = this.animation.damp(this.metrics.overall, overallTarget, 8, dt);
-      this.metrics.pulse = this.animation.damp(this.metrics.pulse, Math.max(this.metrics.bass, this.metrics.overall * 0.7), 10, dt);
-      this.metrics.playing = !this.audio.paused;
-      this.metrics.progress = this.audio.duration ? this.audio.currentTime / this.audio.duration : 0;
-      this.metrics.waveform = this.waveformData || [];
-      document.documentElement.style.setProperty('--bass', this.metrics.pulse.toFixed(3));
-      document.documentElement.style.setProperty('--bloom', (0.18 + this.metrics.pulse * 0.5).toFixed(3));
-      return this.metrics;
-    }
-
-    averageRange(start, end) {
-      if (!this.frequencyData) return 0;
-      const safeEnd = Math.max(start + 1, end);
-      let sum = 0;
-      for (let i = start; i < safeEnd; i += 1) sum += this.frequencyData[i] || 0;
-      return sum / (safeEnd - start || 1);
-    }
-  }
-
-  class ParticleSystem {
-    constructor(count = 80) {
-      this.particles = Array.from({ length: count }, () => ({
-        x: Math.random(),
-        y: Math.random(),
-        depth: 0.3 + Math.random() * 1.8,
-        radius: 0.8 + Math.random() * 2.8,
-        alpha: 0.08 + Math.random() * 0.22,
-        speed: 0.2 + Math.random() * 0.8,
-        phase: Math.random() * Math.PI * 2,
-        hue: Math.random() > 0.55 ? '154,215,255' : Math.random() > 0.45 ? '213,193,255' : '255,180,145'
-      }));
-    }
-
-    render(ctx, width, height, now, bass, pointerX, pointerY) {
-      for (const particle of this.particles) {
-        const drift = now * 0.00001 * particle.speed;
-        const x = ((particle.x + drift / particle.depth + pointerX * 0.01 / particle.depth) % 1 + 1) % 1;
-        const y = ((particle.y + Math.sin(now * 0.00025 * particle.speed + particle.phase) * 0.02 + pointerY * 0.01 / particle.depth) % 1 + 1) % 1;
-        const px = x * width;
-        const py = y * height;
-        const radius = particle.radius * (1 + bass * 0.9) * particle.depth;
-        const alpha = particle.alpha * (0.8 + bass * 1.2);
-        const gradient = ctx.createRadialGradient(px, py, 0, px, py, radius * 8);
-        gradient.addColorStop(0, `rgba(${particle.hue},${alpha})`);
-        gradient.addColorStop(1, `rgba(${particle.hue},0)`);
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(px, py, radius * 8, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }
-
-  class BackgroundRenderer {
-    constructor(canvas, animationSystem, particleSystem) {
-      this.canvas = canvas;
-      this.ctx = canvas.getContext('2d');
-      this.animation = animationSystem;
-      this.particles = particleSystem;
-      this.dpr = 1;
-      this.resize = this.resize.bind(this);
-      window.addEventListener('resize', this.resize);
-      this.resize();
-    }
-
-    resize() {
-      this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-      this.canvas.width = Math.max(1, Math.floor(window.innerWidth * this.dpr));
-      this.canvas.height = Math.max(1, Math.floor(window.innerHeight * this.dpr));
-      this.canvas.style.width = `${window.innerWidth}px`;
-      this.canvas.style.height = `${window.innerHeight}px`;
-    }
-
-    render(now, metrics) {
-      const ctx = this.ctx;
-      const width = this.canvas.width;
-      const height = this.canvas.height;
-      const px = this.animation.pointer.x;
-      const py = this.animation.pointer.y;
-
-      ctx.clearRect(0, 0, width, height);
-
-      const baseGradient = ctx.createLinearGradient(0, 0, width, height);
-      baseGradient.addColorStop(0, '#04070c');
-      baseGradient.addColorStop(0.42, '#08111d');
-      baseGradient.addColorStop(1, '#04060a');
-      ctx.fillStyle = baseGradient;
-      ctx.fillRect(0, 0, width, height);
-
-      this.drawNebula(ctx, width, height, now, metrics, px, py);
-      this.drawGodRays(ctx, width, height, now, metrics, px, py);
-      this.particles.render(ctx, width, height, now, metrics.pulse, px, py);
-      this.drawHalos(ctx, width, height, now, metrics, px, py);
-    }
-
-    drawNebula(ctx, width, height, now, metrics, px, py) {
-      const blobs = [
-        { x: 0.18, y: 0.18, radius: 0.36, color: '154,215,255', speed: 0.00003, phase: 0.2 },
-        { x: 0.82, y: 0.22, radius: 0.32, color: '213,193,255', speed: 0.000026, phase: 1.4 },
-        { x: 0.62, y: 0.78, radius: 0.42, color: '255,180,145', speed: 0.00002, phase: 2.2 },
-        { x: 0.28, y: 0.68, radius: 0.3, color: '139,244,199', speed: 0.000018, phase: 3.1 }
-      ];
-
-      blobs.forEach((blob, index) => {
-        const wobbleX = Math.sin(now * blob.speed + blob.phase) * 0.08 + px * 0.02 * (index + 1);
-        const wobbleY = Math.cos(now * blob.speed * 1.6 + blob.phase) * 0.08 + py * 0.02 * (index + 1);
-        const x = (blob.x + wobbleX) * width;
-        const y = (blob.y + wobbleY) * height;
-        const radius = blob.radius * Math.min(width, height) * (1 + metrics.pulse * 0.35);
-        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-        gradient.addColorStop(0, `rgba(${blob.color},${0.18 + metrics.pulse * 0.14})`);
-        gradient.addColorStop(0.35, `rgba(${blob.color},${0.08 + metrics.overall * 0.1})`);
-        gradient.addColorStop(1, `rgba(${blob.color},0)`);
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    }
-
-    drawGodRays(ctx, width, height, now, metrics, px, py) {
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      const originX = width * (0.5 + px * 0.04);
-      const originY = height * (0.48 + py * 0.04);
-      const rayCount = 4;
-      for (let i = 0; i < rayCount; i += 1) {
-        const angle = -1.2 + i * 0.8 + Math.sin(now * 0.00008 + i) * 0.18;
-        const length = height * (0.55 + i * 0.05);
-        const spread = width * (0.06 + i * 0.02 + metrics.pulse * 0.06);
-        const gradient = ctx.createLinearGradient(originX, originY, originX + Math.cos(angle) * length, originY + Math.sin(angle) * length);
-        gradient.addColorStop(0, `rgba(255,255,255,${0.035 + metrics.pulse * 0.03})`);
-        gradient.addColorStop(0.25, `rgba(154,215,255,${0.05 + metrics.pulse * 0.05})`);
-        gradient.addColorStop(1, 'rgba(154,215,255,0)');
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.moveTo(originX, originY);
-        ctx.lineTo(originX + Math.cos(angle - 0.06) * length + spread, originY + Math.sin(angle - 0.06) * length);
-        ctx.lineTo(originX + Math.cos(angle + 0.06) * length - spread, originY + Math.sin(angle + 0.06) * length);
-        ctx.closePath();
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-
-    drawHalos(ctx, width, height, now, metrics, px, py) {
-      const gradient = ctx.createRadialGradient(
-        width * (0.5 + px * 0.02),
-        height * (0.5 + py * 0.02),
-        0,
-        width * 0.5,
-        height * 0.5,
-        Math.min(width, height) * (0.48 + metrics.pulse * 0.1)
-      );
-      gradient.addColorStop(0, `rgba(255,255,255,${0.04 + metrics.pulse * 0.04})`);
-      gradient.addColorStop(0.36, `rgba(154,215,255,${0.05 + metrics.pulse * 0.06})`);
-      gradient.addColorStop(0.7, 'rgba(213,193,255,0.04)');
-      gradient.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.save();
-      ctx.globalAlpha = 0.08 + metrics.pulse * 0.08;
-      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-      ctx.lineWidth = 1.1 * this.dpr;
-      for (let i = 0; i < 3; i += 1) {
-        const radius = Math.min(width, height) * (0.22 + i * 0.14 + metrics.pulse * 0.02);
-        ctx.beginPath();
-        ctx.ellipse(width * 0.5, height * (0.5 + i * 0.02), radius, radius * (0.7 + i * 0.05), now * 0.00005 + i * 0.2, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-  }
-
-  class SpeakerVisualizer {
-    constructor(options, animationSystem) {
-      this.canvas = options.canvas;
-      this.ctx = this.canvas.getContext('2d');
-      this.shell = options.shell;
-      this.scene = options.scene;
-      this.membrane = options.membrane;
-      this.cap = options.cap;
-      this.animation = animationSystem;
-      this.dpr = 1;
-      this.resize = this.resize.bind(this);
-      window.addEventListener('resize', this.resize);
-      this.resize();
-    }
-
-    resize() {
-      const rect = this.canvas.getBoundingClientRect();
-      this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-      this.canvas.width = Math.max(1, Math.floor(rect.width * this.dpr));
-      this.canvas.height = Math.max(1, Math.floor(rect.height * this.dpr));
-    }
-
-    render(now, metrics) {
-      const breath = metrics.pulse;
-      const px = this.animation.pointer.x;
-      const py = this.animation.pointer.y;
-      const slowYaw = Math.sin(now * 0.00011) * 5;
-      const slowPitch = Math.cos(now * 0.00009) * 4;
-      const floatY = Math.sin(now * 0.00035) * 8 - breath * 10;
-      const scale = 1 + breath * 0.05;
-
-      this.shell.style.transform = `translate3d(0, ${floatY.toFixed(2)}px, 0) rotateX(${(slowPitch - py * 9).toFixed(2)}deg) rotateY(${(slowYaw + px * 9).toFixed(2)}deg) rotateZ(${(Math.sin(now * 0.00006) * 2).toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-      this.membrane.style.transform = `scale(${(1 + breath * 0.16).toFixed(3)}) translateZ(0)`;
-      this.cap.style.transform = `scale(${(1 + breath * 0.09).toFixed(3)}) translateZ(0)`;
-      this.membrane.style.boxShadow = `inset 0 10px 30px rgba(255,255,255,0.05), inset 0 -25px 38px rgba(0,0,0,0.55), 0 0 ${40 + breath * 80}px rgba(154,215,255,${0.08 + breath * 0.1})`;
-      this.cap.style.boxShadow = `inset 0 3px 14px rgba(255,255,255,0.08), inset 0 -12px 22px rgba(0,0,0,0.45), 0 0 ${26 + breath * 30}px rgba(154,215,255,${0.16 + breath * 0.14}), 0 0 ${46 + breath * 36}px rgba(213,193,255,${0.12 + breath * 0.09})`;
-
-      this.drawCanvas(now, metrics);
-    }
-
-    drawCanvas(now, metrics) {
-      const ctx = this.ctx;
-      const width = this.canvas.width;
-      const height = this.canvas.height;
-      const cx = width / 2;
-      const cy = height / 2;
-      const radius = Math.min(width, height) * 0.24;
-      const waveform = metrics.waveform;
-      const breath = metrics.pulse;
-
-      ctx.clearRect(0, 0, width, height);
-      ctx.save();
-      ctx.translate(cx, cy);
-
-      ctx.strokeStyle = `rgba(255,255,255,${0.08 + breath * 0.08})`;
-      ctx.lineWidth = 1.3 * this.dpr;
-      for (let ring = 0; ring < 4; ring += 1) {
-        ctx.beginPath();
-        ctx.arc(0, 0, radius * (1.1 + ring * 0.22 + breath * 0.03), 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      ctx.save();
-      ctx.rotate(now * 0.00014);
-      const ringGradient = ctx.createRadialGradient(0, 0, radius * 0.7, 0, 0, radius * 1.9);
-      ringGradient.addColorStop(0, `rgba(154,215,255,${0.02 + breath * 0.04})`);
-      ringGradient.addColorStop(0.6, `rgba(154,215,255,${0.12 + breath * 0.1})`);
-      ringGradient.addColorStop(1, 'rgba(154,215,255,0)');
-      ctx.strokeStyle = ringGradient;
-      ctx.lineWidth = 5 * this.dpr;
-      ctx.beginPath();
-      const count = 96;
-      for (let i = 0; i <= count; i += 1) {
-        const angle = (i / count) * Math.PI * 2;
-        const waveSample = waveform.length ? (waveform[Math.floor((i / count) * waveform.length)] - 128) / 128 : Math.sin(now * 0.0018 + i * 0.4) * 0.2;
-        const organic = Math.sin(angle * 3 + now * 0.0007) * 0.035 + Math.cos(angle * 5 - now * 0.0005) * 0.02;
-        const r = radius * (1.52 + organic + waveSample * 0.08 + breath * 0.13);
-        const x = Math.cos(angle) * r;
-        const y = Math.sin(angle) * r;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.stroke();
-      ctx.restore();
-
-      ctx.globalCompositeOperation = 'screen';
-      const barCount = 48;
-      for (let i = 0; i < barCount; i += 1) {
-        const angle = (i / barCount) * Math.PI * 2 + now * 0.00024;
-        const amp = waveform.length ? Math.abs((waveform[Math.floor((i / barCount) * waveform.length)] - 128) / 128) : 0.08;
-        const inner = radius * 1.24;
-        const outer = radius * (1.5 + amp * 0.35 + breath * 0.25);
-        const x1 = Math.cos(angle) * inner;
-        const y1 = Math.sin(angle) * inner;
-        const x2 = Math.cos(angle) * outer;
-        const y2 = Math.sin(angle) * outer;
-        ctx.strokeStyle = i % 2 === 0 ? `rgba(154,215,255,${0.18 + amp * 0.45})` : `rgba(255,193,169,${0.12 + amp * 0.35})`;
-        ctx.lineWidth = (1.4 + amp * 2.8) * this.dpr;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-      }
-
-      const centerGlow = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius * (1 + breath * 0.5));
-      centerGlow.addColorStop(0, `rgba(255,255,255,${0.09 + breath * 0.08})`);
-      centerGlow.addColorStop(0.45, `rgba(154,215,255,${0.12 + breath * 0.1})`);
-      centerGlow.addColorStop(1, 'rgba(154,215,255,0)');
-      ctx.fillStyle = centerGlow;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius * (1.05 + breath * 0.1), 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  class LyricsRenderer {
-    constructor(options, audioEngine, animationSystem) {
-      this.stage = options.stage;
-      this.modeButtons = Array.from(options.modeButtons);
-      this.audioEngine = audioEngine;
-      this.animation = animationSystem;
-      this.mode = 'floating';
-      this.lyrics = [];
-      this.pendingRawLyrics = null;
-      this.activeIndex = -1;
-      this.lastActiveIndex = -1;
-      this.activeChangedAt = 0;
-      this.floatTrack = null;
-      this.lineStage = null;
-      this.nextCaptionText = null;
-      this.karaokeFill = null;
-      this.karaokeShine = null;
-      this.waveChars = [];
-      this.neonLine = null;
-      this.minimalLine = null;
-      this.modeButtons.forEach((button) => {
-        button.addEventListener('click', () => this.setMode(button.dataset.mode));
-      });
-      this.showEmpty();
-    }
-
-    parseLRC(text) {
-      const lines = text.split(/\r?\n/);
-      const tag = /\[(\d{1,2}):(\d{2}(?:\.\d{1,3})?)\]/g;
-      const output = [];
-      let hasTimeTags = false;
-
-      for (const rawLine of lines) {
-        tag.lastIndex = 0;
-        let match;
-        const times = [];
-        while ((match = tag.exec(rawLine)) !== null) {
-          times.push(parseInt(match[1], 10) * 60 + parseFloat(match[2]));
-        }
-        if (times.length) {
-          hasTimeTags = true;
-          const textLine = rawLine.replace(tag, '').trim();
-          times.forEach((time) => output.push({ time, text: textLine }));
-        }
-      }
-
-      output.sort((a, b) => a.time - b.time);
-      return hasTimeTags ? output : null;
-    }
-
-    distributeEvenly(text, duration) {
-      const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-      if (!lines.length) return [];
-      const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : Math.max(lines.length * 3, 12);
-      const step = safeDuration / Math.max(1, lines.length);
-      return lines.map((line, index) => ({ time: index * step, text: line }));
-    }
-
-    loadFromText(text, preferTimed = true) {
-      const normalized = String(text || '').replace(/^\uFEFF/, '');
-      const parsed = preferTimed ? this.parseLRC(normalized) : null;
-      if (parsed && parsed.length) {
-        this.pendingRawLyrics = null;
-        this.setLyrics(parsed);
-        return parsed.length;
-      }
-
-      if (Number.isFinite(this.audioEngine.audio.duration) && this.audioEngine.audio.duration > 0) {
-        this.pendingRawLyrics = null;
-        const generated = this.distributeEvenly(normalized, this.audioEngine.audio.duration);
-        this.setLyrics(generated);
-        return generated.length;
-      }
-
-      this.pendingRawLyrics = normalized;
-      this.setLyrics([]);
-      return 0;
-    }
-
-    onDurationReady() {
-      if (this.pendingRawLyrics) {
-        const generated = this.distributeEvenly(this.pendingRawLyrics, this.audioEngine.audio.duration);
-        this.pendingRawLyrics = null;
-        this.setLyrics(generated);
-      }
-    }
-
-    setLyrics(lines) {
-      this.lyrics = Array.isArray(lines) ? lines : [];
-      this.activeIndex = -1;
-      this.lastActiveIndex = -1;
-      this.renderModeLayout();
-    }
-
-    setMode(mode) {
-      this.mode = mode;
-      this.modeButtons.forEach((button) => button.classList.toggle('active', button.dataset.mode === mode));
-      this.activeIndex = -1;
-      this.lastActiveIndex = -1;
-      this.renderModeLayout();
-    }
-
-    showEmpty() {
-      this.stage.innerHTML = '';
-      const empty = document.createElement('div');
-      empty.className = 'lyrics-empty';
-      empty.textContent = 'No lyrics loaded yet. Add an LRC file or paste plain text to animate the full experience.';
-      this.stage.appendChild(empty);
-    }
-
-    renderModeLayout() {
-      this.stage.innerHTML = '';
-      this.floatTrack = null;
-      this.lineStage = null;
-      this.nextCaptionText = null;
-      this.karaokeFill = null;
-      this.karaokeShine = null;
-      this.waveChars = [];
-      this.neonLine = null;
-      this.minimalLine = null;
-
-      if (!this.lyrics.length) {
-        this.showEmpty();
-        return;
-      }
-
-      if (this.mode === 'floating') {
-        const floatSpace = document.createElement('div');
-        floatSpace.className = 'float-space';
-        const track = document.createElement('div');
-        track.className = 'float-track';
-        this.lyrics.forEach((line, index) => {
-          const el = document.createElement('div');
-          el.className = 'float-line';
-          el.textContent = line.text || '\u00A0';
-          el.addEventListener('click', () => {
-            this.audioEngine.seek(line.time);
-            if (this.audioEngine.audio.paused) {
-              this.audioEngine.togglePlayback().catch(() => {});
+                damp(current, target, lambda, dt) {
+                    return current + (target - current) * (1 - Math.exp(-lambda * dt));
+                }
             }
-          });
-          track.appendChild(el);
-        });
-        floatSpace.appendChild(track);
-        this.stage.appendChild(floatSpace);
-        this.floatTrack = track;
-      } else {
-        const lineStage = document.createElement('div');
-        lineStage.className = 'line-stage';
-        lineStage.addEventListener('click', () => {
-          if (this.activeIndex >= 0) {
-            this.audioEngine.seek(this.lyrics[this.activeIndex].time);
-          }
-        });
-        const nextCaption = document.createElement('div');
-        nextCaption.className = 'next-caption';
-        nextCaption.innerHTML = '<span>Up next</span><strong></strong>';
-        this.stage.appendChild(lineStage);
-        this.stage.appendChild(nextCaption);
-        this.lineStage = lineStage;
-        this.nextCaptionText = nextCaption.querySelector('strong');
-      }
 
-      this.update(this.audioEngine.audio.currentTime || 0, { pulse: 0, overall: 0 }, performance.now());
-    }
+            // AudioEngine - Web Audio API wrapper
+            class AudioEngine {
+                constructor() {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.context = ctx;
+                    this.source = null;
+                    this.analyser = ctx.createAnalyser();
+                    this.analyser.fftSize = 256;
+                    this.gainNode = ctx.createGain();
+                    this.gainNode.connect(this.analyser);
+                    this.analyser.connect(ctx.destination);
+                    this.audio = new Audio();
+                    this.audio.addEventListener('ended', () => this.stop());
+                    this.isPlaying = false;
+                    this.lyrics = [];
+                    this.currentLyricIndex = 0;
+                }
 
-    getActiveIndex(time) {
-      let index = -1;
-      for (let i = 0; i < this.lyrics.length; i += 1) {
-        if (this.lyrics[i].time <= time + 0.06) index = i;
-        else break;
-      }
-      return index;
-    }
+                loadAudio(file) {
+                    if (this.source) this.source.stop();
+                    this.audio.src = URL.createObjectURL(file);
+                    this.audio.currentTime = 0;
+                }
 
-    buildSingleLine() {
-      if (!this.lineStage) return;
-      const text = this.activeIndex >= 0 ? this.lyrics[this.activeIndex].text || '' : '';
-      const next = this.lyrics[this.activeIndex + 1];
-      if (this.nextCaptionText) this.nextCaptionText.textContent = next ? next.text : '—';
-      this.lineStage.innerHTML = '';
+                loadLyrics(text) {
+                    const lines = text.split('\n');
+                    this.lyrics = lines
+                        .map(line => {
+                            const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+                            return match ? {
+                                time: parseInt(match[1]) * 60 + parseFloat(match[2]),
+                                text: match[3].trim()
+                            } : null;
+                        })
+                        .filter(Boolean)
+                        .sort((a, b) => a.time - b.time);
+                }
 
-      if (this.mode === 'karaoke') {
-        const wrap = document.createElement('div');
-        wrap.className = 'karaoke-wrap';
-        const base = document.createElement('span');
-        base.className = 'karaoke-base';
-        base.textContent = text;
-        const clip = document.createElement('div');
-        clip.className = 'karaoke-fill-clip';
-        const fill = document.createElement('span');
-        fill.className = 'karaoke-fill';
-        fill.textContent = text;
-        const shine = document.createElement('div');
-        shine.className = 'karaoke-shine';
-        clip.appendChild(fill);
-        wrap.appendChild(base);
-        wrap.appendChild(clip);
-        wrap.appendChild(shine);
-        this.lineStage.appendChild(wrap);
-        this.karaokeFill = clip;
-        this.karaokeShine = shine;
-      } else if (this.mode === 'wave') {
-        const wrap = document.createElement('div');
-        wrap.className = 'wave-wrap';
-        this.waveChars = [...text].map((character) => {
-          const span = document.createElement('span');
-          span.className = 'wave-char';
-          span.textContent = character === ' ' ? '\u00A0' : character;
-          wrap.appendChild(span);
-          return span;
-        });
-        this.lineStage.appendChild(wrap);
-      } else if (this.mode === 'neon') {
-        const div = document.createElement('div');
-        div.className = 'neon-line';
-        div.textContent = text;
-        this.lineStage.appendChild(div);
-        this.neonLine = div;
-      } else if (this.mode === 'minimal') {
-        const div = document.createElement('div');
-        div.className = 'minimal-line';
-        div.textContent = text;
-        this.lineStage.appendChild(div);
-        requestAnimationFrame(() => div.classList.add('visible'));
-        this.minimalLine = div;
-      }
-    }
+                play() {
+                    if (this.context.state === 'suspended') this.context.resume();
+                    this.audio.play();
+                    this.isPlaying = true;
+                }
 
-    update(currentTime, metrics, now) {
-      if (!this.lyrics.length) return;
+                pause() {
+                    this.audio.pause();
+                    this.isPlaying = false;
+                }
 
-      const index = this.getActiveIndex(currentTime);
-      if (index !== this.activeIndex) {
-        this.lastActiveIndex = this.activeIndex;
-        this.activeIndex = index;
-        this.activeChangedAt = now;
-        if (this.mode !== 'floating') this.buildSingleLine();
-      }
+                stop() {
+                    this.audio.pause();
+                    this.audio.currentTime = 0;
+                    this.isPlaying = false;
+                }
 
-      if (this.mode === 'floating') {
-        this.updateFloating(metrics, now);
-      } else {
-        this.updateSingleLine(currentTime, metrics, now);
-      }
-    }
+                seek(percentage) {
+                    this.audio.currentTime = (this.audio.duration || 0) * percentage;
+                }
 
-    updateFloating(metrics, now) {
-      if (!this.floatTrack) return;
-      const lines = this.floatTrack.children;
-      const active = Math.max(0, this.activeIndex);
-      const wobble = Math.sin(now * 0.0006) * 10;
-      for (let i = 0; i < lines.length; i += 1) {
-        const element = lines[i];
-        const distance = i - active;
-        const depth = Math.abs(distance);
-        const focus = Math.max(0, 1 - depth / 6);
-        const y = distance * 58 + Math.sin(now * 0.0009 + i * 0.6) * (6 + depth) + (distance === 0 ? Math.sin(now * 0.0022) * 2 : 0);
-        const x = Math.sin(now * 0.00028 + i * 1.3) * (10 + depth * 4) + this.animation.pointer.x * depth * 10;
-        const z = -depth * 90 + focus * 30;
-        const scale = 0.7 + focus * 0.34 + (distance === 0 ? metrics.pulse * 0.07 : 0);
-        const opacity = this.animation.clamp(1.08 - depth * 0.18, 0.04, 1);
-        const blur = this.animation.clamp(depth * 1.6 - focus * 0.6, 0, 14);
-        const glow = distance === 0 ? 0.32 + metrics.pulse * 0.45 : focus * 0.16;
-        const rotateX = distance * -5 + Math.sin(now * 0.00024 + i) * 1.4;
-        const rotateY = distance * 2.8 + wobble * 0.08;
+                setVolume(value) {
+                    this.gainNode.gain.value = value;
+                    this.audio.volume = value;
+                }
 
-        element.classList.toggle('current', distance === 0);
-        element.classList.toggle('near', Math.abs(distance) === 1);
-        if (distance === 0 && this.lastActiveIndex !== this.activeIndex) {
-          element.classList.remove('entering');
-          // Force reflow to restart CSS animation
-          void element.offsetWidth;
-          element.classList.add('entering');
-        }
+                toggleMute() {
+                    this.gainNode.gain.value = this.gainNode.gain.value > 0 ? 0 : 0.7;
+                    this.audio.muted = !this.audio.muted;
+                }
 
-        element.style.opacity = opacity.toFixed(3);
-        element.style.filter = `blur(${blur.toFixed(2)}px)`;
-        element.style.textShadow = `0 0 ${18 + glow * 40}px rgba(154,215,255,${glow.toFixed(3)}), 0 0 ${26 + glow * 44}px rgba(213,193,255,${(glow * 0.55).toFixed(3)})`;
-        element.style.transform = `translate3d(calc(-50% + ${x.toFixed(2)}px), calc(-50% + ${y.toFixed(2)}px), ${z.toFixed(2)}px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-      }
-    }
+                getFrequencyData() {
+                    const data = new Uint8Array(this.analyser.frequencyBinCount);
+                    this.analyser.getByteFrequencyData(data);
+                    return data;
+                }
 
-    updateSingleLine(currentTime, metrics, now) {
-      if (this.mode === 'karaoke' && this.karaokeFill) {
-        const current = this.lyrics[this.activeIndex];
-        const next = this.lyrics[this.activeIndex + 1];
-        const start = current ? current.time : 0;
-        const end = next ? next.time : start + 4;
-        const progress = this.animation.clamp((currentTime - start) / ((end - start) || 1), 0, 1);
-        this.karaokeFill.style.width = `${(progress * 100).toFixed(2)}%`;
-        if (this.karaokeShine) {
-          this.karaokeShine.style.transform = `translateX(${(-120 + progress * 190).toFixed(2)}%)`;
-          this.karaokeShine.style.opacity = `${0.28 + metrics.pulse * 0.44}`;
-        }
-      }
+                getCurrentLyrics() {
+                    const current = this.lyrics.find(l => Math.abs(l.time - this.audio.currentTime) < 0.5);
+                    const next = this.lyrics.find(l => l.time > this.audio.currentTime);
+                    return {
+                        current: current?.text || '',
+                        next: next?.text || ''
+                    };
+                }
 
-      if (this.mode === 'wave' && this.waveChars.length) {
-        this.waveChars.forEach((char, index) => {
-          const lift = Math.sin(now * 0.0042 + index * 0.42) * (4 + metrics.overall * 18);
-          const scale = 1 + Math.cos(now * 0.0031 + index * 0.33) * 0.02 + metrics.pulse * 0.06;
-          const blur = Math.max(0, metrics.pulse * 2.2 - 0.2);
-          const alpha = 0.7 + (Math.sin(now * 0.0028 + index * 0.4) + 1) * 0.08 + metrics.overall * 0.22;
-          char.style.transform = `translateY(${lift.toFixed(2)}px) scale(${scale.toFixed(3)})`;
-          char.style.opacity = alpha.toFixed(3);
-          char.style.filter = `blur(${blur.toFixed(2)}px)`;
-          char.style.textShadow = `0 0 ${18 + metrics.pulse * 26}px rgba(154,215,255,${0.16 + metrics.pulse * 0.34})`;
-        });
-      }
+                get currentTime() {
+                    return this.audio.currentTime;
+                }
 
-      if (this.mode === 'neon' && this.neonLine) {
-        const flicker = 0.9 + Math.sin(now * 0.014) * 0.05 + Math.sin(now * 0.003 + metrics.pulse * 6) * 0.04;
-        this.neonLine.style.opacity = flicker.toFixed(3);
-        this.neonLine.style.textShadow = `0 0 4px rgba(255,255,255,0.95), 0 0 ${14 + metrics.pulse * 18}px rgba(154,215,255,0.82), 0 0 ${32 + metrics.pulse * 28}px rgba(154,215,255,0.72), 0 0 ${60 + metrics.pulse * 40}px rgba(213,193,255,0.55)`;
-        this.neonLine.style.transform = `scale(${(1 + metrics.pulse * 0.03).toFixed(3)}) translateY(${(Math.sin(now * 0.0028) * 2).toFixed(2)}px)`;
-      }
+                get duration() {
+                    return this.audio.duration;
+                }
+            }
 
-      if (this.mode === 'minimal' && this.minimalLine) {
-        this.minimalLine.style.filter = `blur(${Math.max(0, 2 - metrics.pulse * 1.2).toFixed(2)}px)`;
-        this.minimalLine.style.textShadow = `0 0 ${12 + metrics.pulse * 18}px rgba(255,255,255,${0.08 + metrics.pulse * 0.18})`;
-      }
-    }
-  }
+            // BackgroundRenderer - Canvas-based animated background
+            class BackgroundRenderer {
+                constructor(canvas) {
+                    this.canvas = canvas;
+                    this.ctx = canvas.getContext('2d');
+                    this.time = 0;
+                    this.particles = [];
+                    this.nebulae = [];
+                    this.initialize();
+                    window.addEventListener('resize', () => this.resize());
+                }
 
-  class ControlsManager {
-    constructor(options, audioEngine, lyricsRenderer, animationSystem) {
-      this.uiRoot = options.uiRoot;
-      this.audioEngine = audioEngine;
-      this.lyricsRenderer = lyricsRenderer;
-      this.animation = animationSystem;
-      this.audioInput = options.audioInput;
-      this.lyricsInput = options.lyricsInput;
-      this.audioLabel = options.audioLabel;
-      this.lyricsLabel = options.lyricsLabel;
-      this.pasteToggle = options.pasteToggle;
-      this.pasteDrawer = options.pasteDrawer;
-      this.pasteArea = options.pasteArea;
-      this.pasteApply = options.pasteApply;
-      this.playButton = options.playButton;
-      this.backButton = options.backButton;
-      this.forwardButton = options.forwardButton;
-      this.progressBar = options.progressBar;
-      this.progressFill = options.progressFill;
-      this.progressGlow = options.progressGlow;
-      this.progressKnob = options.progressKnob;
-      this.currentTime = options.currentTime;
-      this.durationTime = options.durationTime;
-      this.trackTitle = options.trackTitle;
-      this.liveDot = options.liveDot;
-      this.statusMsg = options.statusMsg;
-      this.volumeControl = options.volumeControl;
-      this.modeBadge = options.modeBadge;
-      this.dropzone = options.dropzone;
-      this.isSeeking = false;
-      this.hideTimer = null;
-      this.statusTimer = null;
-      this.bind();
-      this.updateVolumeFill();
-      this.updateModeBadge();
-    }
+                initialize() {
+                    this.resize();
+                    this.createParticles();
+                    this.createNebulae();
+                }
 
-    bind() {
-      this.playButton.addEventListener('click', async () => {
-        if (!this.audioEngine.audio.src) {
-          this.audioInput.click();
-          return;
-        }
-        try {
-          await this.audioEngine.togglePlayback();
-          this.revealTemporarily();
-        } catch (error) {
-          this.showStatus(error.message || 'Playback could not start.', true);
-        }
-      });
+                resize() {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
+                }
 
-      this.backButton.addEventListener('click', () => {
-        this.audioEngine.seek((this.audioEngine.audio.currentTime || 0) - 10);
-        this.revealTemporarily();
-      });
+                createNebulae() {
+                    this.nebulae = [
+                        { x: 0.3, y: 0.3, radius: 400, color: [0, 217, 255, 0.15], speed: 0.0002 },
+                        { x: 0.7, y: 0.2, radius: 350, color: [99, 102, 241, 0.12], speed: 0.00015 },
+                        { x: 0.5, y: 0.7, radius: 300, color: [236, 72, 153, 0.1], speed: 0.0001 },
+                    ];
+                }
 
-      this.forwardButton.addEventListener('click', () => {
-        this.audioEngine.seek((this.audioEngine.audio.currentTime || 0) + 10);
-        this.revealTemporarily();
-      });
+                createParticles() {
+                    this.particles = Array.from({ length: 80 }, () => ({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 0.3,
+                        vy: (Math.random() - 0.5) * 0.3,
+                        size: Math.random() * 2 + 0.5,
+                        opacity: Math.random() * 0.5 + 0.2,
+                        depth: Math.random() * 3,
+                    }));
+                }
 
-      const seekFromEvent = (event) => {
-        const rect = this.progressBar.getBoundingClientRect();
-        const point = event.touches ? event.touches[0] : event;
-        const progress = this.animation.clamp((point.clientX - rect.left) / rect.width, 0, 1);
-        this.progressBar.setAttribute('aria-valuenow', String(Math.round(progress * 100)));
-        if (Number.isFinite(this.audioEngine.audio.duration)) {
-          this.audioEngine.seek(progress * this.audioEngine.audio.duration);
-        }
-      };
+                renderNebulae(t) {
+                    this.nebulae.forEach(nebula => {
+                        const posX = this.canvas.width * nebula.x + Math.sin(t * nebula.speed) * 100;
+                        const posY = this.canvas.height * nebula.y + Math.cos(t * nebula.speed * 0.7) * 100;
+                        const gradient = this.ctx.createRadialGradient(posX, posY, 0, posX, posY, nebula.radius);
+                        gradient.addColorStop(0, `rgba(${nebula.color[0]}, ${nebula.color[1]}, ${nebula.color[2]}, ${nebula.color[3]})`);
+                        gradient.addColorStop(0.5, `rgba(${nebula.color[0]}, ${nebula.color[1]}, ${nebula.color[2]}, ${nebula.color[3] * 0.5})`);
+                        gradient.addColorStop(1, `rgba(${nebula.color[0]}, ${nebula.color[1]}, ${nebula.color[2]}, 0)`);
+                        this.ctx.fillStyle = gradient;
+                        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    });
+                }
 
-      this.progressBar.addEventListener('pointerdown', (event) => {
-        this.isSeeking = true;
-        seekFromEvent(event);
-        this.revealTemporarily();
-      });
-      window.addEventListener('pointermove', (event) => {
-        if (this.isSeeking) seekFromEvent(event);
-      }, { passive: true });
-      window.addEventListener('pointerup', () => { this.isSeeking = false; });
+                renderParticles() {
+                    this.particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.opacity += (Math.sin(this.time * 0.01 + p.depth) - 0.5) * 0.001;
+                        p.opacity = Math.max(0.1, Math.min(0.6, p.opacity));
+                        if (p.x < 0) p.x = this.canvas.width;
+                        if (p.x > this.canvas.width) p.x = 0;
+                        if (p.y < 0) p.y = this.canvas.height;
+                        if (p.y > this.canvas.height) p.y = 0;
+                        this.ctx.fillStyle = `rgba(0, 217, 255, ${p.opacity})`;
+                        this.ctx.beginPath();
+                        this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    });
+                }
 
-      this.progressBar.addEventListener('keydown', (event) => {
-        if (!Number.isFinite(this.audioEngine.audio.duration)) return;
-        const step = event.shiftKey ? 10 : 5;
-        if (event.key === 'ArrowLeft') {
-          event.preventDefault();
-          this.audioEngine.seek(this.audioEngine.audio.currentTime - step);
-        }
-        if (event.key === 'ArrowRight') {
-          event.preventDefault();
-          this.audioEngine.seek(this.audioEngine.audio.currentTime + step);
-        }
-      });
+                render(audioData) {
+                    this.ctx.fillStyle = 'rgba(10, 14, 39, 0.2)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.renderNebulae(this.time);
+                    this.renderParticles();
+                    const bassIntensity = audioData?.[0] || 0;
+                    if (bassIntensity > 0.3) {
+                        const gradient = this.ctx.createRadialGradient(
+                            this.canvas.width / 2, this.canvas.height / 2, 0,
+                            this.canvas.width / 2, this.canvas.height / 2,
+                            Math.max(this.canvas.width, this.canvas.height)
+                        );
+                        gradient.addColorStop(0, `rgba(0, 217, 255, ${bassIntensity * 0.1})`);
+                        gradient.addColorStop(1, 'rgba(0, 217, 255, 0)');
+                        this.ctx.fillStyle = gradient;
+                        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    }
+                    this.time++;
+                }
+            }
 
-      this.volumeControl.addEventListener('input', () => {
-        this.audioEngine.setVolume(this.volumeControl.value);
-        this.updateVolumeFill();
-      });
-      this.audioEngine.setVolume(this.volumeControl.value);
+            // SpeakerVisualizer - Bass-responsive speaker animation
+            class SpeakerVisualizer {
+                constructor(canvas, audioEngine) {
+                    this.canvas = canvas;
+                    this.ctx = canvas.getContext('2d');
+                    this.audioEngine = audioEngine;
+                    this.time = 0;
+                    this.haloScale = 1;
+                    this.breatheScale = 1;
+                    this.initialize();
+                    window.addEventListener('resize', () => this.resize());
+                }
 
-      this.audioInput.addEventListener('change', (event) => {
-        const file = event.target.files && event.target.files[0];
-        if (file) this.loadAudioFile(file);
-      });
+                initialize() {
+                    this.resize();
+                }
 
-      this.lyricsInput.addEventListener('change', (event) => {
-        const file = event.target.files && event.target.files[0];
-        if (file) this.loadLyricsFile(file);
-      });
+                resize() {
+                    this.canvas.width = Math.min(500, window.innerWidth - 40);
+                    this.canvas.height = 280;
+                }
 
-      this.pasteToggle.addEventListener('click', () => {
-        const open = this.pasteDrawer.classList.toggle('open');
-        this.pasteToggle.classList.toggle('active', open);
-        this.revealTemporarily();
-      });
+                render(frequency) {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    const centerX = this.canvas.width / 2;
+                    const centerY = this.canvas.height / 2;
+                    const bassFreq = frequency.slice(0, 8).reduce((a, b) => a + b, 0) / 8 / 255;
+                    const midFreq = frequency.slice(8, 64).reduce((a, b) => a + b, 0) / 56 / 255;
+                    this.breatheScale += (0.8 + bassFreq - this.breatheScale) * 0.1;
+                    this.haloScale += (1 + midFreq * 0.5 - this.haloScale) * 0.08;
 
-      this.pasteApply.addEventListener('click', () => {
-        const value = this.pasteArea.value.trim();
-        if (!value) {
-          this.showStatus('Paste lyrics first.', true);
-          return;
-        }
-        const count = this.lyricsRenderer.loadFromText(value, true);
-        this.lyricsLabel.classList.add('has-file');
-        this.showStatus(count ? `${count} lyric lines loaded.` : 'Lyrics loaded and will sync once audio duration is known.', false);
-        this.pasteDrawer.classList.remove('open');
-        this.pasteToggle.classList.remove('active');
-      });
+                    // Draw halos
+                    for (let i = 3; i > 0; i--) {
+                        const haloRadius = 80 * i * this.haloScale;
+                        const haloOpacity = (0.3 - i * 0.08) * (0.5 + bassFreq);
+                        this.ctx.strokeStyle = `rgba(0, 217, 255, ${haloOpacity})`;
+                        this.ctx.lineWidth = 2;
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX, centerY, haloRadius, 0, Math.PI * 2);
+                        this.ctx.stroke();
+                    }
 
-      ['dragenter', 'dragover'].forEach((type) => {
-        this.dropzone.addEventListener(type, (event) => {
-          event.preventDefault();
-          this.dropzone.style.boxShadow = '0 0 0 1px rgba(154,215,255,0.55), 0 30px 80px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1)';
-          this.revealTemporarily();
-        });
-      });
-      ['dragleave', 'drop'].forEach((type) => {
-        this.dropzone.addEventListener(type, (event) => {
-          event.preventDefault();
-          this.dropzone.style.boxShadow = '';
-        });
-      });
-      this.dropzone.addEventListener('drop', (event) => {
-        const files = Array.from((event.dataTransfer && event.dataTransfer.files) || []);
-        files.forEach((file) => {
-          const audioMatch = file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|mp4|flac|webm)$/i.test(file.name);
-          const lyricMatch = /\.(lrc|txt)$/i.test(file.name);
-          if (audioMatch) this.loadAudioFile(file);
-          else if (lyricMatch) this.loadLyricsFile(file);
-        });
-      });
+                    // Draw speaker cone
+                    this.ctx.fillStyle = `rgba(0, 217, 255, 0.15)`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX, centerY, 60 * this.breatheScale, 0, Math.PI * 2);
+                    this.ctx.fill();
 
-      this.audioEngine.audio.addEventListener('play', () => {
-        this.playButton.classList.add('playing');
-        this.liveDot.classList.add('live');
-        this.scheduleAutoHide();
-      });
-      this.audioEngine.audio.addEventListener('pause', () => {
-        this.playButton.classList.remove('playing');
-        this.liveDot.classList.remove('live');
-        this.uiRoot.classList.remove('ui-hidden');
-        clearTimeout(this.hideTimer);
-      });
-      this.audioEngine.audio.addEventListener('ended', () => {
-        this.playButton.classList.remove('playing');
-        this.liveDot.classList.remove('live');
-        this.uiRoot.classList.remove('ui-hidden');
-        clearTimeout(this.hideTimer);
-      });
-      this.audioEngine.audio.addEventListener('loadedmetadata', () => {
-        this.durationTime.textContent = this.formatTime(this.audioEngine.audio.duration);
-        this.lyricsRenderer.onDurationReady();
-      });
-      this.audioEngine.audio.addEventListener('error', () => {
-        const code = this.audioEngine.audio.error ? this.audioEngine.audio.error.code : '?';
-        this.showStatus(`Browser could not decode this file (code ${code}). Try a standard MP3 or WAV.`, true);
-      });
+                    this.ctx.strokeStyle = `rgba(0, 217, 255, 0.4)`;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX, centerY, 60 * this.breatheScale, 0, Math.PI * 2);
+                    this.ctx.stroke();
 
-      ['pointermove', 'touchstart', 'focusin', 'mouseenter'].forEach((type) => {
-        window.addEventListener(type, () => this.revealTemporarily(), { passive: true });
-      });
+                    // Draw frequency bars
+                    const barCount = 32;
+                    const barWidth = (this.canvas.width - 60) / barCount;
+                    const startX = 30;
 
-      window.addEventListener('keydown', (event) => {
-        if (document.activeElement === this.pasteArea) return;
-        if (event.code === 'Space') {
-          event.preventDefault();
-          this.playButton.click();
-        }
-      });
-    }
+                    for (let i = 0; i < barCount; i++) {
+                        const value = frequency[Math.floor(i * frequency.length / barCount)] / 255;
+                        const barHeight = value * 100 * (1 + bassFreq * 0.3);
+                        const x = startX + i * barWidth;
+                        const y = centerY + 80;
+                        this.ctx.shadowColor = `rgba(0, 217, 255, ${value * 0.5})`;
+                        this.ctx.shadowBlur = 10 + value * 10;
+                        this.ctx.fillStyle = `rgba(0, 217, 255, ${0.3 + value * 0.7})`;
+                        this.ctx.fillRect(x, y - barHeight, barWidth * 0.8, barHeight);
+                    }
+                    this.ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+                    this.time++;
+                }
+            }
 
-    updateVolumeFill() {
-      const value = parseFloat(this.volumeControl.value) || 0;
-      const percent = value * 100;
-      this.volumeControl.style.background = `linear-gradient(90deg, rgba(154,215,255,0.9) 0%, rgba(154,215,255,0.9) ${percent}%, rgba(255,255,255,0.12) ${percent}%, rgba(255,255,255,0.12) 100%)`;
-    }
+            // LyricsRenderer - Multi-mode lyrics display
+            class LyricsRenderer {
+                constructor() {
+                    this.currentLine = '';
+                    this.nextLine = '';
+                    this.mode = 'floating';
+                    this.time = 0;
+                    this.animationPhase = 0;
+                    this.wavePulse = 0;
+                }
 
-    loadAudioFile(file) {
-      this.showStatus('Loading audio…', false);
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          this.audioEngine.audio.src = reader.result;
-          this.audioEngine.audio.load();
-          this.trackTitle.textContent = file.name.replace(/\.[^/.]+$/, '');
-          this.audioLabel.classList.add('has-file');
-          this.showStatus(`Audio loaded: ${file.name}`, false);
-          this.revealTemporarily();
-        } catch (error) {
-          this.showStatus(`Audio load failed: ${error.message}`, true);
-        }
-      };
-      reader.onerror = () => this.showStatus('The selected audio file could not be read.', true);
-      reader.readAsDataURL(file);
-    }
+                setMode(mode) {
+                    this.mode = mode;
+                    this.animationPhase = 0;
+                }
 
-    loadLyricsFile(file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const content = String(reader.result).replace(/^\uFEFF/, '');
-        const count = this.lyricsRenderer.loadFromText(content, /\.lrc$/i.test(file.name) || /\[\d{1,2}:\d{2}/.test(content));
-        this.lyricsLabel.classList.add('has-file');
-        this.showStatus(count ? `${count} lyric lines loaded.` : 'Lyrics loaded and will sync once duration is available.', false);
-      };
-      reader.onerror = () => this.showStatus('The selected lyric file could not be read.', true);
-      reader.readAsText(file);
-    }
+                setLyrics(current, next) {
+                    if (current !== this.currentLine) {
+                        this.currentLine = current;
+                        this.animationPhase = 0;
+                    }
+                    this.nextLine = next;
+                }
 
-    revealTemporarily() {
-      this.uiRoot.classList.remove('ui-hidden');
-      this.scheduleAutoHide();
-    }
+                updateFloating() {
+                    this.animationPhase = Math.min(1, this.animationPhase + 0.02);
+                    const ease = (t) => {
+                        if (t < 0.3) return (t / 0.3) * (t / 0.3);
+                        if (t < 0.6) return 1 - Math.pow((t - 0.3) / 0.3, 2) * 0.3;
+                        return 1;
+                    };
+                    return ease(this.animationPhase);
+                }
 
-    scheduleAutoHide() {
-      clearTimeout(this.hideTimer);
-      if (this.audioEngine.audio.paused) return;
-      this.hideTimer = setTimeout(() => {
-        if (!this.audioEngine.audio.paused) this.uiRoot.classList.add('ui-hidden');
-      }, 2400);
-    }
+                render(element) {
+                    if (!element) return;
+                    element.classList.remove('lyrics-floating', 'lyrics-karaoke', 'lyrics-bd', 'lyrics-neon', 'lyrics-wave', 'lyrics-minimal');
+                    element.classList.add(`lyrics-${this.mode}`);
 
-    showStatus(message, isError) {
-      this.statusMsg.textContent = message;
-      this.statusMsg.classList.toggle('error', Boolean(isError));
-      clearTimeout(this.statusTimer);
-      this.statusTimer = setTimeout(() => {
-        this.statusMsg.textContent = '';
-        this.statusMsg.classList.remove('error');
-      }, 5200);
-    }
+                    switch (this.mode) {
+                        case 'floating':
+                            element.style.opacity = this.updateFloating();
+                            element.style.filter = `blur(${5 - this.animationPhase * 5}px) drop-shadow(0 0 ${10 + this.animationPhase * 10}px rgba(0, 217, 255, ${0.5 + this.animationPhase * 0.3}))`;
+                            break;
+                        case 'karaoke':
+                            element.style.filter = `drop-shadow(0 0 ${10 + Math.sin(this.time * 0.05) * 5}px rgba(0, 217, 255, 0.6))`;
+                            break;
+                        case 'bd':
+                            const rotX = Math.sin(this.time * 0.02) * 5;
+                            const rotY = Math.cos(this.time * 0.02) * 5;
+                            element.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+                            break;
+                        case 'neon':
+                            const flicker = Math.random() > 0.95 ? -3 : 0;
+                            element.style.filter = `brightness(${1 + flicker * 0.1}) drop-shadow(0 0 ${15 + flicker}px rgba(0, 217, 255, 0.8))`;
+                            break;
+                        case 'wave':
+                            this.renderWaveMode(element);
+                            break;
+                        case 'minimal':
+                            element.style.opacity = 1;
+                            element.style.filter = 'none';
+                            break;
+                    }
+                    if (this.mode !== 'wave') element.textContent = this.currentLine;
+                    this.time++;
+                }
 
-    updateModeBadge() {
-      const label = this.lyricsRenderer.mode.charAt(0).toUpperCase() + this.lyricsRenderer.mode.slice(1);
-      this.modeBadge.textContent = `${label} mode`;
-    }
+                renderWaveMode(element) {
+                    this.wavePulse += 0.05;
+                    const chars = this.currentLine.split('');
+                    element.innerHTML = chars.map((char, i) => {
+                        const offset = Math.sin(this.wavePulse + i * 0.3) * 20;
+                        const opacity = 0.7 + Math.sin(this.wavePulse + i * 0.2) * 0.3;
+                        return `<span class="wave-char" style="--index: ${i}; transform: translateY(${offset}px); opacity: ${opacity};">${char}</span>`;
+                    }).join('');
+                }
+            }
 
-    formatTime(seconds) {
-      const safe = Number.isFinite(seconds) && seconds >= 0 ? seconds : 0;
-      const minutes = Math.floor(safe / 60);
-      const remaining = Math.floor(safe % 60);
-      return `${minutes}:${String(remaining).padStart(2, '0')}`;
-    }
+            // ControlsManager - File handling and UI management
+            class ControlsManager {
+                constructor(audioEngine, lyricsRenderer) {
+                    this.audioEngine = audioEngine;
+                    this.lyricsRenderer = lyricsRenderer;
+                }
 
-    render() {
-      const current = this.audioEngine.audio.currentTime || 0;
-      const duration = this.audioEngine.audio.duration || 0;
-      const progress = duration ? current / duration : 0;
-      const percent = progress * 100;
-      this.currentTime.textContent = this.formatTime(current);
-      this.durationTime.textContent = this.formatTime(duration);
-      this.progressFill.style.width = `${percent}%`;
-      this.progressGlow.style.width = `${percent}%`;
-      this.progressKnob.style.left = `${percent}%`;
-      this.progressBar.setAttribute('aria-valuenow', String(Math.round(percent)));
-      this.updateModeBadge();
-    }
-  }
+                handleFileUpload(file) {
+                    if (!file) return;
+                    this.audioEngine.loadAudio(file);
+                }
 
-  const animation = new AnimationSystem(document.documentElement);
-  const audioEngine = new AudioEngine(document.getElementById('audioElement'), animation);
-  const particles = new ParticleSystem(animation.prefersReducedMotion ? 36 : 88);
-  const background = new BackgroundRenderer(document.getElementById('backgroundCanvas'), animation, particles);
-  const lyricsRenderer = new LyricsRenderer({
-    stage: document.getElementById('lyricsStage'),
-    modeButtons: document.querySelectorAll('.mode-pill')
-  }, audioEngine, animation);
-  const speakerVisualizer = new SpeakerVisualizer({
-    canvas: document.getElementById('speakerCanvas'),
-    shell: document.getElementById('speakerShell'),
-    scene: document.getElementById('speakerScene'),
-    membrane: document.getElementById('speakerMembrane'),
-    cap: document.getElementById('speakerCap')
-  }, animation);
-  const controlsManager = new ControlsManager({
-    uiRoot: document.getElementById('appShell'),
-    audioInput: document.getElementById('audioInput'),
-    lyricsInput: document.getElementById('lyricsInput'),
-    audioLabel: document.getElementById('audioLabel'),
-    lyricsLabel: document.getElementById('lyricsLabel'),
-    pasteToggle: document.getElementById('pasteToggle'),
-    pasteDrawer: document.getElementById('pasteDrawer'),
-    pasteArea: document.getElementById('pasteArea'),
-    pasteApply: document.getElementById('pasteApply'),
-    playButton: document.getElementById('playButton'),
-    backButton: document.getElementById('backButton'),
-    forwardButton: document.getElementById('forwardButton'),
-    progressBar: document.getElementById('progressBar'),
-    progressFill: document.getElementById('progressFill'),
-    progressGlow: document.getElementById('progressGlow'),
-    progressKnob: document.getElementById('progressKnob'),
-    currentTime: document.getElementById('currentTime'),
-    durationTime: document.getElementById('durationTime'),
-    trackTitle: document.getElementById('trackTitle'),
-    liveDot: document.getElementById('liveDot'),
-    statusMsg: document.getElementById('statusMsg'),
-    volumeControl: document.getElementById('volumeControl'),
-    modeBadge: document.getElementById('modeBadge'),
-    dropzone: document.getElementById('dropzone')
-  }, audioEngine, lyricsRenderer, animation);
+                handleLrcUpload(file) {
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.audioEngine.loadLyrics(e.target.result);
+                    };
+                    reader.readAsText(file);
+                }
 
-  animation.add((dt, now) => {
-    const metrics = audioEngine.sample(dt, now);
-    background.render(now, metrics);
-    speakerVisualizer.render(now, metrics);
-    lyricsRenderer.update(audioEngine.audio.currentTime || 0, metrics, now);
-    controlsManager.render();
-  });
-})();
+                handleLrcPaste(text) {
+                    this.audioEngine.loadLyrics(text);
+                }
+            }
 
+            // Initialize all systems
+            window.addEventListener('DOMContentLoaded', async () => {
+                const audioEngine = new AudioEngine();
+                const animationSystem = new AnimationSystem(document.documentElement);
+                const backgroundCanvas = document.getElementById('background-canvas');
+                const backgroundRenderer = new BackgroundRenderer(backgroundCanvas);
+                const speakerCanvas = document.getElementById('speaker-canvas');
+                const speakerVisualizer = new SpeakerVisualizer(speakerCanvas, audioEngine);
+                const lyricsRenderer = new LyricsRenderer();
+                const controlsManager = new ControlsManager(audioEngine, lyricsRenderer);
+
+                // Mode switching
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        const mode = e.target.dataset.mode;
+                        lyricsRenderer.setMode(mode);
+                    });
+                });
+
+                // Wake Lock API
+                let wakeLock = null;
+                const requestWakeLock = async () => {
+                    try {
+                        wakeLock = await navigator.wakeLock?.request('screen');
+                    } catch (err) {
+                        console.log('Wake Lock not available');
+                    }
+                };
+
+                const releaseWakeLock = async () => {
+                    if (wakeLock) {
+                        await wakeLock.release();
+                        wakeLock = null;
+                    }
+                };
+
+                // Main animation loop
+                const animate = () => {
+                    requestAnimationFrame(animate);
+                    const frequency = audioEngine.getFrequencyData();
+                    backgroundRenderer.render(frequency);
+                    speakerVisualizer.render(frequency);
+                    const { current, next } = audioEngine.getCurrentLyrics();
+                    lyricsRenderer.setLyrics(current, next);
+                    lyricsRenderer.render(document.getElementById('lyrics-text'));
+                    const progressPercent = (audioEngine.currentTime / audioEngine.duration) * 100 || 0;
+                    document.getElementById('progress-bar').style.width = progressPercent + '%';
+                    const formatTime = (ms) => {
+                        const s = Math.floor(ms / 1000);
+                        return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+                    };
+                    document.getElementById('time-display').textContent = formatTime(audioEngine.currentTime) + ' / ' + formatTime(audioEngine.duration);
+                    const controlsPanel = document.getElementById('controls-panel');
+                    if (audioEngine.isPlaying && audioEngine.duration > 0) {
+                        if (!controlsPanel.classList.contains('hidden')) {
+                            setTimeout(() => controlsPanel.classList.add('hidden'), 3000);
+                        }
+                    } else {
+                        controlsPanel.classList.remove('hidden');
+                    }
+                    const bassEnergy = frequency[0] / 255;
+                    document.documentElement.style.setProperty('--bass', bassEnergy);
+                    document.documentElement.style.setProperty('--bloom', Math.sin(performance.now() / 1000) * 0.5 + 0.5);
+                };
+                animate();
+
+                // Control listeners
+                document.getElementById('play-btn').addEventListener('click', () => {
+                    audioEngine.isPlaying ? audioEngine.pause() : audioEngine.play();
+                    document.getElementById('play-btn').textContent = audioEngine.isPlaying ? '⏸ Pause' : '▶ Play';
+                    if (audioEngine.isPlaying) requestWakeLock();
+                    else releaseWakeLock();
+                });
+
+                document.getElementById('stop-btn').addEventListener('click', () => {
+                    audioEngine.stop();
+                    releaseWakeLock();
+                    document.getElementById('play-btn').textContent = '▶ Play';
+                });
+
+                document.getElementById('seek-slider').addEventListener('input', (e) => {
+                    audioEngine.seek(parseFloat(e.target.value) / 100);
+                });
+
+                document.getElementById('volume-slider').addEventListener('input', (e) => {
+                    audioEngine.setVolume(parseFloat(e.target.value) / 100);
+                });
+
+                document.getElementById('volume-btn').addEventListener('click', () => {
+                    audioEngine.toggleMute();
+                });
+
+                document.getElementById('upload-audio-btn').addEventListener('click', () => {
+                    document.getElementById('file-upload').click();
+                });
+
+                document.getElementById('upload-lrc-btn').addEventListener('click', () => {
+                    document.getElementById('lrc-upload').click();
+                });
+
+                document.getElementById('file-upload').addEventListener('change', (e) => {
+                    controlsManager.handleFileUpload(e.files[0]);
+                });
+
+                document.getElementById('lrc-upload').addEventListener('change', (e) => {
+                    controlsManager.handleLrcUpload(e.files[0]);
+                });
+
+                // Drag and drop
+                document.addEventListener('dragover', (e) => e.preventDefault());
+                document.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const files = e.dataTransfer.files;
+                    Array.from(files).forEach(file => {
+                        if (file.type.includes('audio')) {
+                            controlsManager.handleFileUpload(file);
+                        } else if (file.name.endsWith('.lrc')) {
+                            controlsManager.handleLrcUpload(file);
+                        }
+                    });
+                });
+
+                // Touch to show controls
+                let touchTimeout;
+                document.addEventListener('touchstart', () => {
+                    document.getElementById('controls-panel').classList.remove('hidden');
+                    clearTimeout(touchTimeout);
+                    touchTimeout = setTimeout(() => {
+                        if (audioEngine.isPlaying) {
+                            document.getElementById('controls-panel').classList.add('hidden');
+                        }
+                    }, 5000);
+                });
+
+                // Paste lyrics
+                document.addEventListener('paste', (e) => {
+                    const text = e.clipboardData.getData('text');
+                    if (text.includes('\n') || text.includes('[')) {
+                        controlsManager.handleLrcPaste(text);
+                    }
+                });
+            });
+        })();
     </script>
 </body>
 </html>
