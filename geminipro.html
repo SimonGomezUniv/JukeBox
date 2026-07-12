@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SonicGlass - Premium Lyric Player</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-color: rgba(255, 255, 255, 0.9);
+            --text-glow: rgba(255, 255, 255, 0.3);
+            --accent: rgba(255, 255, 255, 0.8);
+            --bass-scale: 1;
+            --bass-glow: 0;
+            --speaker-rot: 0deg;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body, html {
+            width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Canvas Background */
+        #bg-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        /* Ambient Global Lighting */
+        .ambient-light {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100vw; height: 100vh;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle at center, rgba(20, 25, 40, 0.5) 0%, rgba(5,5,5,1) 70%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Glass Speaker */
+        .speaker-container {
+            position: absolute;
+            top: 40%; left: 50%;
+            transform: translate(-50%, -50%) scale(var(--bass-scale)) rotate(var(--speaker-rot));
+            width: 280px; height: 280px;
+            z-index: 5;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.5),
+                inset 0 0 40px rgba(255,255,255,0.05),
+                inset 0 0 10px rgba(255,255,255,0.1),
+                0 0 calc(20px + (var(--bass-glow) * 50px)) rgba(255, 255, 255, calc(var(--bass-glow) * 0.2));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+        }
+
+        .speaker-diaphragm {
+            width: 60%; height: 60%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.8) 80%);
+            box-shadow: inset 0 5px 15px rgba(255,255,255,0.2), 0 10px 30px rgba(0,0,0,0.8);
+            border: 2px solid rgba(25,25,25,0.5);
+            position: relative;
+            transform: scale(calc(1 + (var(--bass-scale) - 1) * 2));
+            transition: transform 0.05s ease-out;
+        }
+
+        .speaker-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30%; height: 30%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.3) 0%, rgba(20,20,20,1) 100%);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Lyrics Engine */
+        .lyrics-wrapper {
+            position: absolute;
+            top: 75%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%; max-width: 800px;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+            perspective: 1000px;
+        }
+
+        .lyric-line {
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-weight: 200;
+            letter-spacing: -0.02em;
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: blur(10px);
+            transform: translateY(20px) scale(0.95);
+        }
+
+        .lyric-line.active {
+            opacity: 1;
+            filter: blur(0px);
+            transform: translateY(0) scale(1);
+            text-shadow: 0 0 20px var(--text-glow);
+        }
+
+        .lyric-line.past {
+            opacity: 0;
+            filter: blur(10px);
+            transform: translateY(-30px) scale(1.05);
+        }
+
+        /* Lyric Modes Specifications */
+        /* Mode: Karaoke */
+        .mode-karaoke .lyric-line { font-weight: 600; color: rgba(255,255,255,0.2); }
+        .mode-karaoke .lyric-line.active .word {
+            display: inline-block;
+            background: linear-gradient(90deg, #fff 50%, rgba(255,255,255,0.2) 50%);
+            background-size: 200% 100%;
+            background-position: 100% 0;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: background-position 0.3s ease-out;
+        }
+        .mode-karaoke .lyric-line.active .word.filled { background-position: 0% 0; text-shadow: 0 0 15px rgba(255,255,255,0.8); }
+
+        /* Mode: Neon */
+        .mode-neon .lyric-line { font-family: 'Inter', sans-serif; font-style: italic; font-weight: 600; color: #fff; }
+        .mode-neon .lyric-line.active { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #0ff, 0 0 40px #0ff, 0 0 80px #0ff; animation: flicker 3s infinite alternate; }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+            20%, 24%, 55% { opacity: 0.8; text-shadow: none; }
+        }
+
+        /* Controls (Disappearing) */
+        .controls-layer {
+            position: absolute;
+            bottom: 40px; left: 50%;
+            transform: translateX(-50%);
+            width: 90%; max-width: 600px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        body.show-controls .controls-layer { opacity: 1; }
+
+        .controls-top { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        .controls-bottom { display: flex; align-items: center; gap: 10px; }
+
+        button, select {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover, select:hover { background: rgba(255,255,255,0.2); }
+
+        /* Progress Bar */
+        .progress-container {
+            flex-grow: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            border-radius: 3px;
+            pointer-events: none;
+        }
+
+        /* Inputs */
+        input[type="file"] { display: none; }
+        .upload-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Drag Overlay */
+        .drag-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            backdrop-filter: blur(10px);
+            font-size: 2rem; font-weight: 200;
+        }
+        .drag-overlay.active { opacity: 1; pointer-events: all; }
+
+        @media (max-width: 768px) {
+            .speaker-container { width: 200px; height: 200px; top: 35%; }
+            .lyrics-wrapper { top: 70%; }
+            .controls-layer { bottom: 20px; padding: 15px; }
+            .lyric-line { font-size: clamp(1.2rem, 5vw, 2rem); }
+        }
+    </style>
+</head>
+<body class="show-controls">
+
+    <div class="drag-overlay" id="dragOverlay">Drop Audio & LRC files here</div>
+    <div class="ambient-light"></div>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="speaker-container" id="speaker">
+        <div class="speaker-diaphragm">
+            <div class="speaker-center"></div>
+        </div>
+    </div>
+
+    <div class="lyrics-wrapper" id="lyricsWrapper">
+        <div class="lyric-line active" id="default-lyric" style="position: relative;">Please upload Audio & LRC</div>
+    </div>
+
+    <div class="controls-layer" id="controls">
+        <div class="controls-top">
+            <button onclick="document.getElementById('audioInput').click()" class="upload-btn">🎵 Audio</button>
+            <button onclick="document.getElementById('lrcInput').click()" class="upload-btn">📝 LRC</button>
+            <input type="file" id="audioInput" accept="audio/*">
+            <input type="file" id="lrcInput" accept=".lrc">
+            
+            <button id="playBtn">Play</button>
+            
+            <select id="modeSelect">
+                <option value="floating">Mode: Floating</option>
+                <option value="karaoke">Mode: Karaoke</option>
+                <option value="neon">Mode: Neon</option>
+                <option value="minimal">Mode: Minimal</option>
+            </select>
+        </div>
+        <div class="controls-bottom">
+            <span id="timeCurrent" style="font-size: 0.8rem; opacity: 0.7;">0:00</span>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <span id="timeTotal" style="font-size: 0.8rem; opacity: 0.7;">0:00</span>
+        </div>
+    </div>
+
+<script>
+/**
+ * UTILS: Math & Easing
+ */
+const lerp = (start, end, amt) => (1 - amt) * start + amt * end;
+const formatTime = (seconds) => {
+    if (isNaN(seconds)) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+};
+
+/**
+ * ENGINE: Web Audio API
+ */
+class AudioEngine {
+    constructor() {
+        this.audio = new Audio();
+        this.audio.crossOrigin = "anonymous";
+        this.ctx = null;
+        this.analyser = null;
+        this.source = null;
+        this.dataArray = null;
+        this.isPlaying = false;
+        
+        // Physics variables for smooth visualizer data
+        this.currentBass = 0;
+        this.targetBass = 0;
+    }
+
+    init() {
+        if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            this.analyser = this.ctx.createAnalyser();
+            this.analyser.fftSize = 256;
+            this.source = this.ctx.createMediaElementSource(this.audio);
+            this.source.connect(this.analyser);
+            this.analyser.connect(this.ctx.destination);
+            this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+    }
+
+    loadAudio(file) {
+        const url = URL.createObjectURL(file);
+        this.audio.src = url;
+        this.audio.load();
+    }
+
+    togglePlay() {
+        this.init();
+        if (this.audio.paused) {
+            this.audio.play();
+            this.isPlaying = true;
+        } else {
+            this.audio.pause();
+            this.isPlaying = false;
+        }
+        return this.isPlaying;
+    }
+
+    getVisualizerData() {
+        if (!this.analyser) return { bass: 0, array: [] };
+        this.analyser.getByteFrequencyData(this.dataArray);
+        
+        // Calculate bass (average of lower frequencies)
+        let bassSum = 0;
+        for (let i = 0; i < 5; i++) {
+            bassSum += this.dataArray[i];
+        }
+        this.targetBass = bassSum / 5 / 255; // Normalize 0 to 1
+        
+        // Lerp for smooth breathing effect
+        this.currentBass = lerp(this.currentBass, this.targetBass, 0.15);
+
+        return { bass: this.currentBass, array: this.dataArray };
+    }
+}
+
+/**
+ * PARSER: LRC Parser
+ */
+class LrcParser {
+    static parse(lrcText) {
+        const lines = lrcText.split('\n');
+        const lyrics = [];
+        const regex = /\[(\d{2}):(\d{2}(?:\.\d{2,3})?)\](.*)/;
+
+        lines.forEach(line => {
+            const match = regex.exec(line);
+            if (match) {
+                const minutes = parseInt(match[1]);
+                const seconds = parseFloat(match[2]);
+                const text = match[3].trim();
+                if (text) {
+                    lyrics.push({ time: minutes * 60 + seconds, text: text });
+                }
+            }
+        });
+        return lyrics.sort((a, b) => a.time - b.time);
+    }
+}
+
+/**
+ * CANVAS: Background Particles & Halos
+ */
+class Visualizer {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d', { alpha: false });
+        this.particles = [];
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        
+        // Init particles
+        for(let i = 0; i < 50; i++) {
+            this.particles.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                radius: Math.random() * 3 + 1,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                alpha: Math.random() * 0.5 + 0.1
+            });
+        }
+    }
+
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+    }
+
+    draw(bassLevel) {
+        // Clear with dark trail effect
+        this.ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+
+        // Draw breathing volumetric halos based on bass
+        const haloRadius = Math.max(w, h) * 0.4 * (1 + bassLevel * 0.3);
+        const grad = this.ctx.createRadialGradient(cx, cy * 0.8, 0, cx, cy * 0.8, haloRadius);
+        grad.addColorStop(0, `rgba(40, 60, 100, ${0.05 + bassLevel * 0.1})`);
+        grad.addColorStop(0.5, `rgba(20, 20, 50, ${0.02 + bassLevel * 0.05})`);
+        grad.addColorStop(1, 'rgba(5, 5, 5, 0)');
+        
+        this.ctx.globalCompositeOperation = 'screen';
+        this.ctx.fillStyle = grad;
+        this.ctx.fillRect(0, 0, w, h);
+
+        // Update and draw particles
+        this.ctx.globalCompositeOperation = 'lighter';
+        this.particles.forEach(p => {
+            p.x += p.vx * (1 + bassLevel * 2);
+            p.y += p.vy * (1 + bassLevel * 2);
+
+            // Wrap around
+            if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.radius * (1 + bassLevel), 0, Math.PI * 2);
+            this.ctx.fillStyle = `rgba(200, 220, 255, ${p.alpha * (0.5 + bassLevel)})`;
+            this.ctx.fill();
+        });
+        
+        this.ctx.globalCompositeOperation = 'source-over';
+    }
+}
+
+/**
+ * DOM: Lyrics Display
+ */
+class LyricEngine {
+    constructor(wrapperId) {
+        this.wrapper = document.getElementById(wrapperId);
+        this.lyrics = [];
+        this.currentIndex = -1;
+        this.currentMode = 'floating';
+    }
+
+    setLyrics(lyricsArray) {
+        this.lyrics = lyricsArray;
+        this.wrapper.innerHTML = '';
+        this.currentIndex = -1;
+        
+        this.lyrics.forEach((line, index) => {
+            const div = document.createElement('div');
+            div.className = 'lyric-line';
+            div.id = `line-${index}`;
+            
+            // For Karaoke mode, split into words
+            const words = line.text.split(' ');
+            div.innerHTML = words.map(w => `<span class="word">${w}</span>`).join(' ');
+            
+            this.wrapper.appendChild(div);
+        });
+    }
+
+    setMode(mode) {
+        this.wrapper.className = `lyrics-wrapper mode-${mode}`;
+        this.currentMode = mode;
+    }
+
+    update(currentTime) {
+        if (!this.lyrics.length) return;
+
+        // Find current line
+        let newIndex = this.lyrics.findIndex(l => l.time > currentTime) - 1;
+        if (newIndex === -2) newIndex = this.lyrics.length - 1; // Last line
+        if (newIndex === -1 && this.lyrics[0].time > currentTime) newIndex = -1; // Before first line
+
+        if (newIndex !== this.currentIndex) {
+            // Remove active class from old
+            if (this.currentIndex >= 0) {
+                const oldEl = document.getElementById(`line-${this.currentIndex}`);
+                if (oldEl) {
+                    oldEl.classList.remove('active');
+                    oldEl.classList.add('past');
+                }
+            }
+            // Add active to new
+            if (newIndex >= 0) {
+                const newEl = document.getElementById(`line-${newIndex}`);
+                if (newEl) {
+                    newEl.classList.remove('past');
+                    newEl.classList.add('active');
+                }
+            }
+            this.currentIndex = newIndex;
+        }
+
+        // Karaoke internal logic (simulated progress based on time to next line)
+        if (this.currentMode === 'karaoke' && this.currentIndex >= 0) {
+            const currentLine = this.lyrics[this.currentIndex];
+            const nextLineTime = this.currentIndex < this.lyrics.length - 1 ? this.lyrics[this.currentIndex + 1].time : currentLine.time + 5;
+            const duration = nextLineTime - currentLine.time;
+            const progress = (currentTime - currentLine.time) / duration;
+            
+            const lineEl = document.getElementById(`line-${this.currentIndex}`);
+            if (lineEl) {
+                const words = lineEl.querySelectorAll('.word');
+                words.forEach((word, idx) => {
+                    const threshold = idx / words.length;
+                    if (progress > threshold) word.classList.add('filled');
+                    else word.classList.remove('filled');
+                });
+            }
+        }
+    }
+}
+
+/**
+ * APP: Main Orchestrator
+ */
+class App {
+    constructor() {
+        this.audioEngine = new AudioEngine();
+        this.visualizer = new Visualizer('bg-canvas');
+        this.lyricEngine = new LyricEngine('lyricsWrapper');
+        
+        this.ui = {
+            playBtn: document.getElementById('playBtn'),
+            audioInput: document.getElementById('audioInput'),
+            lrcInput: document.getElementById('lrcInput'),
+            modeSelect: document.getElementById('modeSelect'),
+            progressBar: document.getElementById('progressBar'),
+            progressContainer: document.getElementById('progressContainer'),
+            timeCurrent: document.getElementById('timeCurrent'),
+            timeTotal: document.getElementById('timeTotal'),
+            speaker: document.getElementById('speaker'),
+            dragOverlay: document.getElementById('dragOverlay')
+        };
+
+        this.idleTimer = null;
+        this.rotation = 0;
+        this.setupEvents();
+        this.loop();
+    }
+
+    setupEvents() {
+        // Inputs
+        this.ui.audioInput.addEventListener('change', (e) => {
+            if (e.target.files.length) this.loadAudioFile(e.target.files[0]);
+        });
+        
+        this.ui.lrcInput.addEventListener('change', (e) => {
+            if (e.target.files.length) this.loadLrcFile(e.target.files[0]);
+        });
+
+        // Drag and drop
+        window.addEventListener('dragover', (e) => { e.preventDefault(); this.ui.dragOverlay.classList.add('active'); });
+        window.addEventListener('dragleave', (e) => { e.preventDefault(); this.ui.dragOverlay.classList.remove('active'); });
+        window.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.ui.dragOverlay.classList.remove('active');
+            if (e.dataTransfer.files) {
+                for (let file of e.dataTransfer.files) {
+                    if (file.type.startsWith('audio/') || file.name.endsWith('.mp3')) this.loadAudioFile(file);
+                    else if (file.name.endsWith('.lrc')) this.loadLrcFile(file);
+                }
+            }
+        });
+
+        // Controls
+        this.ui.playBtn.addEventListener('click', () => {
+            const isPlaying = this.audioEngine.togglePlay();
+            this.ui.playBtn.innerText = isPlaying ? 'Pause' : 'Play';
+        });
+
+        this.ui.modeSelect.addEventListener('change', (e) => {
+            this.lyricEngine.setMode(e.target.value);
+        });
+
+        this.ui.progressContainer.addEventListener('click', (e) => {
+            const rect = this.ui.progressContainer.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            if (this.audioEngine.audio.duration) {
+                this.audioEngine.audio.currentTime = pos * this.audioEngine.audio.duration;
+            }
+        });
+
+        // Auto-hide controls
+        const resetIdle = () => {
+            document.body.classList.add('show-controls');
+            clearTimeout(this.idleTimer);
+            this.idleTimer = setTimeout(() => {
+                if (this.audioEngine.isPlaying) document.body.classList.remove('show-controls');
+            }, 3000);
+        };
+        window.addEventListener('mousemove', resetIdle);
+        window.addEventListener('touchstart', resetIdle);
+        resetIdle();
+    }
+
+    loadAudioFile(file) {
+        this.audioEngine.loadAudio(file);
+        this.ui.playBtn.innerText = 'Play';
+        // Auto play policy might block this, but we try
+        this.audioEngine.audio.oncanplay = () => {
+            this.ui.timeTotal.innerText = formatTime(this.audioEngine.audio.duration);
+        };
+    }
+
+    loadLrcFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const lyrics = LrcParser.parse(e.target.result);
+            this.lyricEngine.setLyrics(lyrics);
+        };
+        reader.readAsText(file);
+    }
+
+    loop() {
+        requestAnimationFrame(() => this.loop());
+
+        // Audio Data
+        const { bass } = this.audioEngine.getVisualizerData();
+        const currentTime = this.audioEngine.audio.currentTime;
+
+        // UI Updates
+        if (this.audioEngine.audio.duration) {
+            const pct = (currentTime / this.audioEngine.audio.duration) * 100;
+            this.ui.progressBar.style.width = `${pct}%`;
+            this.ui.timeCurrent.innerText = formatTime(currentTime);
+        }
+
+        // Speaker Glass physics
+        document.documentElement.style.setProperty('--bass-scale', 1 + bass * 0.15);
+        document.documentElement.style.setProperty('--bass-glow', bass);
+        
+        this.rotation += 0.05 + (bass * 0.5); // Rotation speed affected by bass
+        document.documentElement.style.setProperty('--speaker-rot', `${this.rotation}deg`);
+
+        // Canvas render
+        this.visualizer.draw(bass);
+
+        // Lyrics Sync
+        this.lyricEngine.update(currentTime);
+    }
+}
+
+// Boot
+window.onload = () => {
+    window.app = new App();
+};
+</script>
+</body>
+</html>
