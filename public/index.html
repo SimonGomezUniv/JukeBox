@@ -591,7 +591,6 @@
                 }
 
                 getCurrentLyrics() {
-                    if (this.currentLyricIndex === undefined) this.currentLyricIndex = 0;
                     const currentTime = this.audio.currentTime;
                     
                     // Advance index forward
@@ -874,7 +873,7 @@
             // Efficient HTML escaping function
             const escapeHtml = (str) => {
                 const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-                return str.split('').map(c => map[c] || c).join('');
+                return str.replace(/[&<>\"']/g, c => map[c]);
             };
 
             // ControlsManager - File handling and UI management
@@ -960,7 +959,15 @@
                     const progressPercent = (audioEngine.currentTime / audioEngine.duration) * 100 || 0;
                     document.getElementById('progress-bar').style.width = progressPercent + '%';
                     document.getElementById('time-display').textContent = formatTime(audioEngine.currentTime) + ' / ' + formatTime(audioEngine.duration);
-                    const controlsPanel = document.getElementById('controls-panel');
+                    updateControlVisibility();
+                    const bassEnergy = frequency[0] / 255;
+                    document.documentElement.style.setProperty('--bass', bassEnergy);
+                    document.documentElement.style.setProperty('--bloom', Math.sin(performance.now() / 1000) * 0.5 + 0.5);
+                };
+
+                // Helper function to manage control visibility
+                const controlsPanel = document.getElementById('controls-panel');
+                const updateControlVisibility = () => {
                     if (audioEngine.isPlaying && audioEngine.duration > 0) {
                         if (!controlsPanel.classList.contains('hidden')) {
                             if (!hideControlsTimeout) {
@@ -977,16 +984,15 @@
                         }
                         controlsPanel.classList.remove('hidden');
                     }
-                    const bassEnergy = frequency[0] / 255;
-                    document.documentElement.style.setProperty('--bass', bassEnergy);
-                    document.documentElement.style.setProperty('--bloom', Math.sin(performance.now() / 1000) * 0.5 + 0.5);
                 };
+
                 animate();
 
                 // Control listeners
                 document.getElementById('play-btn').addEventListener('click', () => {
                     audioEngine.isPlaying ? audioEngine.pause() : audioEngine.play();
                     document.getElementById('play-btn').textContent = audioEngine.isPlaying ? '⏸ Pause' : '▶ Play';
+                    updateControlVisibility();
                     if (audioEngine.isPlaying) requestWakeLock();
                     else releaseWakeLock();
                 });
@@ -994,6 +1000,7 @@
                 document.getElementById('stop-btn').addEventListener('click', () => {
                     audioEngine.stop();
                     releaseWakeLock();
+                    updateControlVisibility();
                     document.getElementById('play-btn').textContent = '▶ Play';
                 });
 
@@ -1041,14 +1048,15 @@
 
                 // Touch to show controls
                 document.addEventListener('touchstart', () => {
-                    document.getElementById('controls-panel').classList.remove('hidden');
+                    controlsPanel.classList.remove('hidden');
                     if (hideControlsTimeout) {
                         clearTimeout(hideControlsTimeout);
                         hideControlsTimeout = null;
                     }
+                    // Re-trigger timeout if playing
                     if (audioEngine.isPlaying) {
                         hideControlsTimeout = setTimeout(() => {
-                            document.getElementById('controls-panel').classList.add('hidden');
+                            controlsPanel.classList.add('hidden');
                             hideControlsTimeout = null;
                         }, 5000);
                     }
