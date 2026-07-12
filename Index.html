@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -449,10 +449,10 @@
 
     <div class="upload-row">
       <label class="upload-btn" id="audioLabel">🎵 Audio
-        <input type="file" id="audioInput" accept="audio/*" hidden>
+        <input type="file" id="audioInput" accept="audio/*,.mp3,.wav,.ogg,.m4a" hidden>
       </label>
       <label class="upload-btn" id="lyricsLabel">📝 Paroles
-        <input type="file" id="lyricsInput" accept=".lrc,.txt" hidden>
+        <input type="file" id="lyricsInput" hidden>
       </label>
       <button class="upload-btn" id="pasteBtn" type="button">✎ Coller</button>
     </div>
@@ -463,6 +463,7 @@
     </div>
 
     <p class="hint" id="hint">Glissez-déposez un fichier audio et un fichier .lrc directement sur la carte, ou utilisez les boutons ci-dessus. Cliquez sur une ligne de paroles pour sauter à ce moment.</p>
+    <p class="hint" id="statusMsg" style="display:none; color:var(--amber);"></p>
   </div>
 </main>
 
@@ -495,6 +496,7 @@
   const pasteArea = document.getElementById('pasteArea');
   const pasteLoad = document.getElementById('pasteLoad');
   const dropzone = document.getElementById('dropzone');
+  const statusMsg = document.getElementById('statusMsg');
   const lyricsViewport = document.getElementById('lyricsViewport');
   const lyricsTrack = document.getElementById('lyricsTrack');
   const modeRow = document.getElementById('modeRow');
@@ -822,27 +824,65 @@
 
   window.addEventListener('resize', positionTrack);
 
+  // ---------- status / error feedback ----------
+  let statusTimer = null;
+  function showStatus(msg, isError){
+    statusMsg.textContent = msg;
+    statusMsg.style.display = 'block';
+    statusMsg.style.color = isError ? '#e57373' : 'var(--amber)';
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => { statusMsg.style.display = 'none'; }, 5000);
+  }
+
   // ---------- file loading ----------
   function loadAudioFile(file){
-    const url = URL.createObjectURL(file);
-    audio.src = url;
-    trackTitle.textContent = file.name.replace(/\.[^/.]+$/, '');
-    audioLabel.classList.add('has-file');
-    audio.load();
+    showStatus('Lecture du fichier audio…', false);
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        audio.src = reader.result; // data: URL — plus fiable que blob: sur Safari/iOS
+        trackTitle.textContent = file.name.replace(/\.[^/.]+$/, '');
+        audioLabel.classList.add('has-file');
+        audio.load();
+        showStatus('Audio chargé : ' + file.name, false);
+      } catch(err){
+        showStatus('Erreur lors du chargement audio : ' + err.message, true);
+      }
+    };
+    reader.onerror = () => {
+      showStatus('Impossible de lire ce fichier audio depuis l\'appareil.', true);
+    };
+    reader.readAsDataURL(file);
   }
+
+  audio.addEventListener('error', () => {
+    const code = audio.error ? audio.error.code : '?';
+    showStatus('Le navigateur n\'a pas pu lire ce fichier audio (code ' + code + '). Essayez un .mp3 standard.', true);
+  });
 
   function loadLyricsFile(file){
     const isLRC = /\.lrc$/i.test(file.name);
     const reader = new FileReader();
     reader.onload = () => {
-      loadLyricsFromText(reader.result, isLRC || /\[\d{1,2}:\d{2}/.test(reader.result));
+      const text = String(reader.result).replace(/^\uFEFF/, '');
+      loadLyricsFromText(text, isLRC || /\[\d{1,2}:\d{2}/.test(text));
       lyricsLabel.classList.add('has-file');
+      showStatus((lyricsData.length ? lyricsData.length + ' lignes chargées' : 'Fichier lu mais aucune ligne détectée') + ' : ' + file.name, lyricsData.length === 0);
+    };
+    reader.onerror = () => {
+      showStatus('Impossible de lire ce fichier de paroles.', true);
     };
     reader.readAsText(file);
   }
 
-  audioInput.addEventListener('change', (e) => { if (e.target.files[0]) loadAudioFile(e.target.files[0]); });
-  lyricsInput.addEventListener('change', (e) => { if (e.target.files[0]) loadLyricsFile(e.target.files[0]); });
+  audioInput.addEventListener('change', (e) => {
+    if (e.target.files[0]) loadAudioFile(e.target.files[0]);
+    else showStatus('Aucun fichier reçu du sélecteur audio.', true);
+  });
+  lyricsInput.addEventListener('change', (e) => {
+    if (e.target.files[0]) loadLyricsFile(e.target.files[0]);
+    else showStatus('Aucun fichier reçu du sélecteur de paroles.', true);
+  });
 
   pasteBtn.addEventListener('click', () => { pastePanel.classList.toggle('hidden'); });
   pasteLoad.addEventListener('click', () => {
