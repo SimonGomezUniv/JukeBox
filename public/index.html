@@ -1301,12 +1301,12 @@
 </style>
 </head>
 <body>
-<canvas id="backgroundCanvas"></canvas>
-<div class="ambient-film"></div>
-<div class="ambient-grid"></div>
-<div class="ambient-noise"></div>
+<canvas id="backgroundCanvas" aria-hidden="true"></canvas>
+<div class="ambient-film" aria-hidden="true"></div>
+<div class="ambient-grid" aria-hidden="true"></div>
+<div class="ambient-noise" aria-hidden="true"></div>
 
-<main class="app-shell" id="appShell">
+<main class="app-shell" id="appShell" aria-label="SonicGlass Floating Lyric Speaker">
   <div class="premium-shell" id="dropzone">
     <header class="surface-top">
       <div class="status-island">
@@ -1433,7 +1433,7 @@
   </div>
 </main>
 
-<audio id="audioElement" preload="metadata"></audio>
+<audio id="audioElement" preload="metadata" aria-label="Audio player for lyric synchronization"></audio>
 
 <script>
 (() => {
@@ -2151,6 +2151,7 @@
         element.classList.toggle('near', Math.abs(distance) === 1);
         if (distance === 0 && this.lastActiveIndex !== this.activeIndex) {
           element.classList.remove('entering');
+          // Force reflow to restart CSS animation
           void element.offsetWidth;
           element.classList.add('entering');
         }
