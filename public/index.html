@@ -528,6 +528,10 @@
                     this.gainNode.connect(this.analyser);
                     this.analyser.connect(ctx.destination);
                     this.audio = new Audio();
+                    this.audio.crossOrigin = 'anonymous';
+                    // Connect audio element to Web Audio API graph for frequency analysis
+                    this.source = ctx.createMediaElementSource(this.audio);
+                    this.source.connect(this.gainNode);
                     this.audio.addEventListener('ended', () => { this.isPlaying = false; });
                     this.isPlaying = false;
                     this.lyrics = [];
@@ -601,10 +605,15 @@
                         this.currentLyricIndex++;
                     }
                     
-                    const current = this.currentLyricIndex >= 0 && 
-                                   this.currentLyricIndex < this.lyrics.length &&
-                                   Math.abs(this.lyrics[this.currentLyricIndex].time - currentTime) < 0.5 
-                                   ? this.lyrics[this.currentLyricIndex] : null;
+                    // Safely access current lyric with bounds checking
+                    let current = null;
+                    if (this.currentLyricIndex >= 0 && this.currentLyricIndex < this.lyrics.length) {
+                        const currentLyric = this.lyrics[this.currentLyricIndex];
+                        if (Math.abs(currentLyric.time - currentTime) < 0.5) {
+                            current = currentLyric;
+                        }
+                    }
+                    
                     const next = this.currentLyricIndex + 1 < this.lyrics.length 
                                ? this.lyrics[this.currentLyricIndex + 1] : null;
                     
@@ -702,14 +711,14 @@
                     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                     this.renderNebulae(this.time);
                     this.renderParticles();
-                    const bassIntensity = audioData?.[0] || 0;
-                    if (bassIntensity > 0.3) {
+                    const lowFreqBin = audioData?.[0] || 0;
+                    if (lowFreqBin > 0.3) {
                         const gradient = this.ctx.createRadialGradient(
                             this.canvas.width / 2, this.canvas.height / 2, 0,
                             this.canvas.width / 2, this.canvas.height / 2,
                             Math.max(this.canvas.width, this.canvas.height)
                         );
-                        gradient.addColorStop(0, `rgba(0, 217, 255, ${bassIntensity * 0.1})`);
+                        gradient.addColorStop(0, `rgba(0, 217, 255, ${lowFreqBin * 0.1})`);
                         gradient.addColorStop(1, 'rgba(0, 217, 255, 0)');
                         this.ctx.fillStyle = gradient;
                         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -778,7 +787,8 @@
                     const startX = 30;
 
                     for (let i = 0; i < barCount; i++) {
-                        const value = frequency[Math.floor(i * frequency.length / barCount)] / 255;
+                        const index = Math.min(Math.floor(i * frequency.length / barCount), frequency.length - 1);
+                        const value = (frequency[index] || 0) / 255;
                         const barHeight = value * 100 * (1 + bassFreq * 0.3);
                         const x = startX + i * barWidth;
                         const y = centerY + 80;
@@ -875,8 +885,8 @@
 
             // Efficient HTML escaping function
             const escapeHtml = (str) => {
-                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;', '/': '&#47;' };
-                return str.replace(/[&<>"'`/]/g, c => map[c]);
+                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' };
+                return str.replace(/[&<>"'`]/g, c => map[c]);
             };
 
             // ControlsManager - File handling and UI management
@@ -976,12 +986,14 @@
                 const controlsPanel = document.getElementById('controls-panel');
                 
                 const scheduleControlsHide = (delay = 3000) => {
-                    if (!hideControlsTimeout) {
-                        hideControlsTimeout = setTimeout(() => {
-                            controlsPanel.classList.add('hidden');
-                            hideControlsTimeout = null;
-                        }, delay);
+                    // Clear existing timeout and schedule a new one
+                    if (hideControlsTimeout) {
+                        clearTimeout(hideControlsTimeout);
                     }
+                    hideControlsTimeout = setTimeout(() => {
+                        controlsPanel.classList.add('hidden');
+                        hideControlsTimeout = null;
+                    }, delay);
                 };
                 
                 const updateControlVisibility = () => {
