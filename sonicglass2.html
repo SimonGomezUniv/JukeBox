@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lyric Speaker DIY — inspiré du SonicGlass A1</title>
+<style>
+  :root{
+    --glass:   #eef2ef;   /* verre pâle, légèrement vert comme le produit */
+    --ink:     #0b0c0b;   /* noir encre */
+    --frame:   #101110;   /* cadre du haut-parleur */
+    --muted:   #9aa39d;
+    --led:     #35c46b;   /* LED verte sur la tranche */
+    --energy:  0;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    background:#161715;
+    color:var(--glass);
+    font-family: ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; padding:24px 16px 40px;
+    gap:18px;
+  }
+
+  header{ text-align:center; }
+  header h1{
+    font-size:15px; font-weight:600; letter-spacing:.35em; text-transform:uppercase;
+    color:#cfd6d1;
+  }
+  header p{ font-size:12px; color:#7d857f; margin-top:4px; letter-spacing:.05em; }
+
+  /* ============ LE HAUT-PARLEUR ============ */
+  .speaker{
+    position:relative;
+    width:min(960px, 96vw);
+    aspect-ratio: 16/9.4;
+    background:var(--frame);
+    border-radius:14px;
+    padding:clamp(10px, 1.8vw, 22px);
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,.75),
+      inset 0 1px 0 rgba(255,255,255,.07);
+  }
+  .speaker::after{ /* LED sur la tranche droite */
+    content:""; position:absolute; right:3px; top:38%;
+    width:5px; height:26px; border-radius:3px;
+    background:var(--led);
+    box-shadow:0 0 10px var(--led);
+    opacity:.9;
+  }
+  .glass{
+    position:relative; width:100%; height:100%;
+    background:var(--glass);
+    border-radius:6px;
+    overflow:hidden;
+    box-shadow: inset 0 0 40px rgba(0,0,0,.10), inset 0 2px 6px rgba(0,0,0,.18);
+  }
+  .speaker.dark .glass{ background:#0d0e0d; box-shadow:inset 0 0 60px rgba(0,0,0,.6); }
+  .glass::before{ /* reflet diagonal sur la vitre */
+    content:""; position:absolute; inset:-30%;
+    background:linear-gradient(115deg,
+      transparent 42%, rgba(255,255,255,.16) 47%,
+      rgba(255,255,255,.05) 52%, transparent 58%);
+    transform:translateX(calc(var(--px,0) * 4%));
+    pointer-events:none; z-index:6;
+  }
+  .speaker.dark .glass::before{ opacity:.5; }
+
+  /* constellations décoratives, comme sur le verre du produit */
+  .constellation{ position:absolute; inset:0; pointer-events:none; opacity:.5; }
+  .speaker.dark .constellation{ opacity:.25; filter:invert(1); }
+
+  /* les deux transducteurs visibles */
+  .driver{
+    position:absolute; border-radius:50%;
+    width:22%; aspect-ratio:1;
+    background:
+      radial-gradient(circle at 38% 34%, #3d3f3d 0%, #171817 34%, #050505 60%),
+      #000;
+    box-shadow:
+      0 10px 26px rgba(0,0,0,.45),
+      inset 0 0 0 5px #060606,
+      inset 0 0 0 11px #1c1d1c,
+      inset 0 0 0 13px #000;
+    transform: scale(calc(1 + var(--energy) * .06));
+    transition: transform .05s linear;
+    z-index:5;
+  }
+  .driver::after{ /* reflet du dôme en verre */
+    content:""; position:absolute; inset:22%;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.75), rgba(255,255,255,.08) 55%, rgba(0,0,0,.25));
+    filter:blur(.4px);
+  }
+  .driver.d1{ left:6%;  top:12%; }
+  .driver.d2{ right:7%; bottom:12%; }
+  .driver .bar{ /* la barre de fixation horizontale */
+    position:absolute; top:50%; left:-46%; right:-46%;
+    height:16%; transform:translateY(-50%);
+    background:linear-gradient(#1a1b1a,#000);
+    z-index:-1; border-radius:3px;
+  }
+
+  /* ============ LA SCÈNE DES PAROLES ============ */
+  .stage{
+    position:absolute; inset:0; z-index:3;
+    color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    padding:6%;
+    overflow:hidden;
+  }
+  .speaker.dark .stage{ color:#f2f4f2; }
+  .stage .idle{
+    text-align:center; font-size:clamp(13px,1.6vw,16px); color:#8b948d;
+    letter-spacing:.08em; line-height:1.9;
+  }
+
+  /* --- style commun aux lignes --- */
+  .line{ width:100%; }
+  .w{ display:inline-block; white-space:pre; }
+
+  /* 1. FOCUS : remplissage karaoké + flou d'entrée */
+  .st-focus .line{
+    text-align:center;
+    font-size:clamp(26px, 5.2vw, 58px);
+    font-weight:800; letter-spacing:-0.01em; line-height:1.15;
+    animation:focusIn .5s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes focusIn{ from{ opacity:0; filter:blur(14px); transform:scale(1.06);} to{ opacity:1; filter:blur(0); transform:scale(1);} }
+  .st-focus .w{ opacity:.18; transition:opacity .18s; }
+  .st-focus .w.on{ opacity:1; }
+
+  /* 2. CINÉMA 3D : mots inclinés en perspective */
+  .st-tilt{ perspective:700px; }
+  .st-tilt .line{
+    text-align:center;
+    font-size:clamp(26px, 5vw, 56px);
+    font-weight:800; line-height:1.25;
+    transform:rotateX(calc(var(--energy) * 3deg));
+  }
+  .st-tilt .w{
+    opacity:0; transform:translateZ(-220px) rotateY(35deg);
+    transition:transform .45s cubic-bezier(.2,.9,.25,1), opacity .35s;
+  }
+  .st-tilt .w.on{ opacity:1; transform:translateZ(0) rotateY(var(--ry,0deg)) rotate(var(--rz,0deg)); }
+
+  /* 3. MACHINE À ÉCRIRE : caractère par caractère */
+  .st-type .line{
+    font-size:clamp(22px, 4vw, 44px);
+    font-family:"Courier New", ui-monospace, monospace;
+    font-weight:700; line-height:1.5; text-align:left;
+    max-width:80%; margin:0 auto;
+  }
+  .st-type .c{ visibility:hidden; }
+  .st-type .c.on{ visibility:visible; }
+  .st-type .caret{
+    display:inline-block; width:.55em; height:1.05em;
+    background:currentColor; vertical-align:text-bottom;
+    animation:blink 1s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  /* 4. ÉCLATS : mots dispersés et inclinés sur le verre */
+  .st-scatter .line{ position:absolute; inset:0; }
+  .st-scatter .w{
+    position:absolute;
+    font-weight:800;
+    font-size:calc(clamp(18px, 3.4vw, 40px) * var(--s,1));
+    transform:rotate(var(--rz,0deg)) scale(.6);
+    opacity:0;
+    transition:opacity .4s, transform .5s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .st-scatter .w.on{ opacity:1; transform:rotate(var(--rz,0deg)) scale(1); }
+
+  /* 5. PILE : liste défilante, ligne courante en évidence */
+  .st-stack{ align-items:stretch; }
+  .st-stack .win{
+    display:flex; flex-direction:column; justify-content:center;
+    gap:.55em; width:100%; text-align:center;
+  }
+  .st-stack .row{
+    font-size:clamp(15px, 2.1vw, 24px); font-weight:600;
+    opacity:.22; transition:all .45s cubic-bezier(.2,.8,.2,1);
+    line-height:1.3;
+  }
+  .st-stack .row.cur{
+    font-size:clamp(26px, 4.4vw, 50px); font-weight:800; opacity:1;
+    letter-spacing:-.01em;
+  }
+
+  /* 6. IMPACT : plein cadre, serif, façon affiche */
+  .st-impact .line{
+    font-family:Georgia, "Times New Roman", serif;
+    font-weight:700; text-transform:uppercase;
+    text-align:center; line-height:.98; letter-spacing:-.01em;
+    font-size:clamp(40px, 9.5vw, 108px);
+    animation:punch .35s cubic-bezier(.2,1.4,.3,1) both;
+    transform:scale(calc(1 + var(--energy) * .02));
+  }
+  @keyframes punch{ from{ opacity:0; transform:scale(1.35);} to{ opacity:1; transform:scale(1);} }
+  .st-impact .w{ opacity:.14; transition:opacity .15s; }
+  .st-impact .w.on{ opacity:1; }
+
+  /* 7. VERRE LIQUIDE : mots embossés dans le verre, puis encrés (fidèle au SonicGlass) */
+  .st-glass{ perspective:1100px; align-items:center; justify-content:flex-start; }
+  .st-glass .line{
+    text-align:left;
+    font-size:clamp(30px, 6.2vw, 68px);
+    font-weight:800; letter-spacing:-.015em; line-height:1.14;
+    max-width:88%;
+    transform:
+      rotateY(var(--tx,0deg))
+      rotateX(calc(var(--ty,0deg) + var(--energy) * 1.5deg))
+      translateZ(0);
+    transition:transform .3s ease-out;
+    transform-style:preserve-3d;
+  }
+  .st-glass .w{
+    position:relative; display:inline-block; white-space:pre;
+    animation:glassRise .65s cubic-bezier(.2,.8,.2,1) both;
+    animation-delay:calc(var(--i,0) * 70ms);
+  }
+  @keyframes glassRise{
+    from{ opacity:0; transform:translateY(16px) scale(.97); filter:blur(8px); }
+    to  { opacity:1; transform:none; filter:blur(0); }
+  }
+  /* couche 1 — le mot moulé dans le verre : transparent, arêtes réfractées */
+  .st-glass .glassy{
+    display:inline-block;
+    background:linear-gradient(118deg,
+      rgba(255,255,255,.95) 0%,
+      rgba(255,255,255,.20) 18%,
+      rgba(0,0,0,.12)       42%,
+      rgba(255,255,255,.65) 60%,
+      rgba(0,0,0,.07)       78%,
+      rgba(255,255,255,.45) 100%);
+    background-size:230% 100%;
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent;
+    -webkit-text-stroke:.4px rgba(255,255,255,.28);
+    filter:url(#refract)
+      drop-shadow(0 1px 0 rgba(255,255,255,.6))
+      drop-shadow(0 4px 5px rgba(0,0,0,.16));
+    animation:sheen 5s ease-in-out infinite;
+  }
+  @keyframes sheen{
+    0%,100%{ background-position:0% 0; }
+    50%    { background-position:100% 0; }
+  }
+  .speaker.dark .st-glass .glassy{
+    background:linear-gradient(118deg,
+      rgba(255,255,255,.55) 0%,
+      rgba(255,255,255,.10) 25%,
+      rgba(255,255,255,.40) 55%,
+      rgba(255,255,255,.06) 80%,
+      rgba(255,255,255,.30) 100%);
+    background-size:230% 100%;
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-stroke:.4px rgba(255,255,255,.35);
+    filter:url(#refract)
+      drop-shadow(0 1px 0 rgba(255,255,255,.25))
+      drop-shadow(0 4px 6px rgba(0,0,0,.5));
+  }
+  /* couche 2 — l'encre qui remplit le mot au moment où il est chanté */
+  .st-glass .inky{
+    position:absolute; inset:0;
+    clip-path:inset(-10% 100% -14% -2%);
+    filter:blur(5px); opacity:.0;
+    transition:
+      clip-path .42s cubic-bezier(.35,.7,.15,1),
+      filter    .42s ease-out,
+      opacity   .2s linear;
+  }
+  .st-glass .w.on .inky{
+    clip-path:inset(-10% -3% -14% -2%);
+    filter:blur(0); opacity:1;
+    animation:inkSettle .55s cubic-bezier(.25,.9,.3,1.15) both;
+  }
+  @keyframes inkSettle{ /* le gel se fige en encre */
+    0%  { transform:scale(1.05,.9)  translateY(2px); }
+    55% { transform:scale(.99,1.03) translateY(-1px); }
+    100%{ transform:none; }
+  }
+  .st-glass .w.on .glassy{ animation-play-state:paused; }
+
+  /* ============ CONTRÔLES ============ */
+  .panel{
+    width:min(960px, 96vw);
+    background:#1d1f1d; border:1px solid #2a2d2a; border-radius:12px;
+    padding:14px 16px; display:flex; flex-direction:column; gap:12px;
+  }
+  .rowflex{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .btn{
+    background:#eef2ef; color:#111; border:none; border-radius:8px;
+    padding:9px 16px; font-weight:700; font-size:13px; cursor:pointer;
+    letter-spacing:.02em;
+  }
+  .btn.ghost{ background:transparent; color:#dfe5e0; border:1px solid #3a3e3a; font-weight:600; }
+  .btn:disabled{ opacity:.35; cursor:default; }
+  .filelab{ font-size:12px; color:#8f978f; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  input[type=file]{ display:none; }
+
+  .seek{ display:flex; align-items:center; gap:10px; width:100%; }
+  .seek .time{ font-size:12px; color:#8f978f; font-variant-numeric:tabular-nums; min-width:44px; }
+  .seek input[type=range]{ flex:1; accent-color:#eef2ef; height:4px; }
+
+  .styles{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip{
+    border:1px solid #3a3e3a; color:#c9d0ca; background:transparent;
+    border-radius:999px; padding:7px 14px; font-size:12px; cursor:pointer;
+    letter-spacing:.03em;
+  }
+  .chip.on{ background:#eef2ef; color:#111; border-color:#eef2ef; font-weight:700; }
+
+  .hint{ font-size:11.5px; color:#6e766f; line-height:1.6; }
+  .hint code{ background:#262926; padding:1px 5px; border-radius:4px; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.001s !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Lyric&nbsp;Speaker&nbsp;DIY</h1>
+  <p>hommage maison au SonicGlass A1 — MP3 + LRC, rendu 100&nbsp;% local</p>
+</header>
+
+<!-- filtre de réfraction pour le texte "verre liquide" -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="refract" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.011 0.02" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- ====== Le haut-parleur ====== -->
+<div class="speaker" id="speaker">
+  <div class="glass">
+    <svg class="constellation" viewBox="0 0 960 540" preserveAspectRatio="none">
+      <g stroke="#0b0c0b" stroke-width="1" fill="#0b0c0b" opacity=".55">
+        <circle cx="120" cy="430" r="3"/><circle cx="175" cy="465" r="2.2"/><circle cx="150" cy="395" r="2.2"/>
+        <line x1="120" y1="430" x2="175" y2="465"/><line x1="120" y1="430" x2="150" y2="395"/>
+        <circle cx="700" cy="90" r="3"/><circle cx="760" cy="60" r="2"/><circle cx="745" cy="120" r="2"/>
+        <line x1="700" y1="90" x2="760" y2="60"/><line x1="700" y1="90" x2="745" y2="120"/><line x1="760" y1="60" x2="745" y2="120"/>
+        <circle cx="840" cy="330" r="2.4"/><circle cx="890" cy="370" r="2"/><line x1="840" y1="330" x2="890" y2="370"/>
+        <circle cx="430" cy="60" r="6" fill="none" stroke-width="1.4"/>
+        <circle cx="620" cy="470" r="9" fill="none" stroke-width="1.4"/>
+        <circle cx="520" cy="35" r="4"/>
+      </g>
+    </svg>
+
+    <div class="stage" id="stage">
+      <div class="idle">
+        chargez un&nbsp;MP3 et un fichier&nbsp;.lrc<br>
+        — ou lancez le <strong>mode démo</strong> pour prévisualiser les styles —
+      </div>
+    </div>
+
+    <div class="driver d1"><div class="bar"></div></div>
+    <div class="driver d2"><div class="bar"></div></div>
+  </div>
+</div>
+
+<!-- ====== Contrôles ====== -->
+<div class="panel">
+  <div class="rowflex">
+    <button class="btn" id="btnMp3">Charger un MP3</button>
+    <span class="filelab" id="labMp3">aucun fichier audio</span>
+    <button class="btn" id="btnLrc">Charger des paroles (.lrc)</button>
+    <span class="filelab" id="labLrc">aucun fichier de paroles</span>
+    <input type="file" id="fileMp3" accept="audio/*">
+    <input type="file" id="fileLrc" accept=".lrc,.txt">
+  </div>
+
+  <div class="rowflex">
+    <button class="btn" id="btnPlay" disabled>▶ Lecture</button>
+    <button class="btn ghost" id="btnDemo">Mode démo</button>
+    <button class="btn ghost" id="btnTheme">Fond sombre</button>
+    <button class="btn ghost" id="btnFull">Plein écran</button>
+  </div>
+
+  <div class="seek">
+    <span class="time" id="tCur">0:00</span>
+    <input type="range" id="seek" min="0" max="1000" value="0">
+    <span class="time" id="tEnd">0:00</span>
+  </div>
+
+  <div class="styles" id="styles"></div>
+
+  <p class="hint">
+    Format attendu : LRC standard <code>[mm:ss.xx] texte</code> (le LRC enrichi avec
+    des balises de mots <code>&lt;mm:ss.xx&gt;</code> est aussi pris en charge ; sinon le
+    minutage des mots est interpolé sur la durée de la ligne). Les effets réagissent aux
+    basses du morceau via la Web&nbsp;Audio&nbsp;API.
+  </p>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+"use strict";
+
+/* =================== ÉTAT =================== */
+const $ = id => document.getElementById(id);
+const audio   = $("audio");
+const stage   = $("stage");
+const speaker = $("speaker");
+
+const STYLES = [
+  { id:"glass",   name:"Verre liquide" },
+  { id:"focus",   name:"Focus" },
+  { id:"tilt",    name:"Cinéma 3D" },
+  { id:"type",    name:"Machine à écrire" },
+  { id:"scatter", name:"Éclats" },
+  { id:"stack",   name:"Pile" },
+  { id:"impact",  name:"Impact" },
+];
+
+const state = {
+  lyrics: [],          // [{t, raw, words:[{t|null, w}]}]
+  curLine: -1,
+  style: "glass",
+  hasAudio: false,
+  demo: false,
+  demoT0: 0, demoPaused: 0, demoOffset: 0,
+  playing: false,
+  actx: null, analyser: null, fftBuf: null,
+  seeking: false,
+};
+
+/* =================== PARSEUR LRC =================== */
+function parseLRC(text){
+  const out = [];
+  const lineRe = /\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\]/g;
+  for (const rawLine of text.split(/\r?\n/)){
+    lineRe.lastIndex = 0;
+    const stamps = [];
+    let m, lastEnd = 0;
+    while ((m = lineRe.exec(rawLine)) !== null){
+      if (m.index !== lastEnd) break; // ne prendre que les tags en tête de ligne
+      const frac = m[3] ? Number(("0."+m[3])) : 0;
+      stamps.push(Number(m[1])*60 + Number(m[2]) + frac);
+      lastEnd = lineRe.lastIndex;
+    }
+    if (!stamps.length) continue;
+    const body = rawLine.slice(lastEnd).trim();
+    if (!body) continue;
+
+    // LRC enrichi : <mm:ss.xx>mot
+    const words = [];
+    const wordRe = /<(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?>/g;
+    if (wordRe.test(body)){
+      wordRe.lastIndex = 0;
+      let prev = 0, prevT = null, mm;
+      while ((mm = wordRe.exec(body)) !== null){
+        const chunk = body.slice(prev, mm.index).trim();
+        if (chunk) words.push(...chunk.split(/\s+/).map(w => ({t:prevT, w})));
+        prevT = Number(mm[1])*60 + Number(mm[2]) + (mm[3]?Number("0."+mm[3]):0);
+        prev = wordRe.lastIndex;
+      }
+      const tail = body.slice(prev).trim();
+      if (tail) words.push(...tail.split(/\s+/).map(w => ({t:prevT, w})));
+    } else {
+      words.push(...body.split(/\s+/).map(w => ({t:null, w})));
+    }
+    const clean = words.map(x=>x.w).join(" ");
+    for (const t of stamps) out.push({ t, raw:clean, words });
+  }
+  out.sort((a,b)=>a.t-b.t);
+  return out;
+}
+
+/* =================== DÉMO (texte original, libre de droits) =================== */
+const DEMO_LRC = `
+[00:00.50]Lueur sur le verre
+[00:03.50]les mots flottent dans l'air
+[00:06.50]quand je suis avec toi
+[00:10.00]le silence devient une voix
+[00:13.50]ET TOUT S'ILLUMINE
+[00:17.00]ligne après ligne
+[00:20.50]la musique se lit
+[00:24.00]entre le noir et le blanc
+[00:27.50]chaque battement s'écrit
+[00:31.00]sur la vitre du temps
+[00:34.50]LUEUR SUR LE VERRE
+[00:38.00]— fin de la démo —
+`;
+
+/* =================== AUDIO / ANALYSE =================== */
+function ensureAnalyser(){
+  if (state.actx) return;
+  const A = window.AudioContext || window.webkitAudioContext;
+  state.actx = new A();
+  const src = state.actx.createMediaElementSource(audio);
+  state.analyser = state.actx.createAnalyser();
+  state.analyser.fftSize = 256;
+  state.fftBuf = new Uint8Array(state.analyser.frequencyBinCount);
+  src.connect(state.analyser);
+  state.analyser.connect(state.actx.destination);
+}
+function readEnergy(now){
+  if (state.playing && state.analyser && state.hasAudio && !state.demo){
+    state.analyser.getByteFrequencyData(state.fftBuf);
+    let s = 0; const n = 10;                 // ~basses
+    for (let i=0;i<n;i++) s += state.fftBuf[i];
+    return Math.min(1, (s/n)/200);
+  }
+  if (state.demo && state.playing){          // pulsation simulée à ~104 BPM
+    const t = now/1000;
+    return Math.max(0, Math.sin(t*2*Math.PI*1.73))**6 * .8;
+  }
+  return 0;
+}
+
+/* =================== HORLOGE =================== */
+function nowSec(){
+  if (state.demo){
+    if (!state.playing) return state.demoOffset;
+    return state.demoOffset + (performance.now() - state.demoT0)/1000;
+  }
+  return audio.currentTime;
+}
+function durSec(){
+  if (state.demo) return 40;
+  return isFinite(audio.duration) ? audio.duration : 0;
+}
+
+/* =================== RENDU DES LIGNES =================== */
+let seedGen = (i)=>{ let a = (i+1)*2654435761 >>> 0;
+  return ()=>{ a ^= a<<13; a >>>= 0; a ^= a>>17; a ^= a<<5; a >>>= 0; return (a>>>8)/16777216; }; };
+
+function clearStage(){ stage.innerHTML = ""; stage.className = "stage st-"+state.style; }
+
+function mountLine(idx){
+  clearStage();
+  if (idx < 0 || idx >= state.lyrics.length) return;
+  const line = state.lyrics[idx];
+  const rnd = seedGen(idx);
+
+  if (state.style === "stack"){
+    const win = document.createElement("div"); win.className = "win";
+    for (let k = idx-2; k <= idx+2; k++){
+      const row = document.createElement("div");
+      row.className = "row" + (k===idx ? " cur" : "");
+      row.textContent = (k>=0 && k<state.lyrics.length) ? state.lyrics[k].raw : "\u00a0";
+      win.appendChild(row);
+    }
+    stage.appendChild(win);
+    return;
+  }
+
+  const el = document.createElement("div");
+  el.className = "line";
+
+  if (state.style === "glass"){
+    line.words.forEach((wo, i)=>{
+      const w = document.createElement("span");
+      w.className = "w";
+      w.style.setProperty("--i", i);
+      const txt = wo.w + (i < line.words.length-1 ? " " : "");
+      const g = document.createElement("span");
+      g.className = "glassy"; g.textContent = txt;
+      const k = document.createElement("span");
+      k.className = "inky";   k.textContent = txt;
+      k.setAttribute("aria-hidden", "true");
+      w.appendChild(g); w.appendChild(k);
+      el.appendChild(w);
+    });
+    stage.appendChild(el);
+    return;
+  }
+
+  if (state.style === "type"){
+    for (const ch of line.raw){
+      const c = document.createElement("span");
+      c.className = "c"; c.textContent = ch;
+      el.appendChild(c);
+    }
+    const caret = document.createElement("span"); caret.className = "caret";
+    el.appendChild(caret);
+  } else {
+    line.words.forEach((wo, i)=>{
+      const s = document.createElement("span");
+      s.className = "w"; s.textContent = wo.w + (i < line.words.length-1 ? " " : "");
+      if (state.style === "tilt"){
+        s.style.setProperty("--ry", (rnd()*24-12).toFixed(1)+"deg");
+        s.style.setProperty("--rz", (rnd()*8-4).toFixed(1)+"deg");
+      }
+      if (state.style === "scatter"){
+        s.style.setProperty("--rz", (rnd()*40-20).toFixed(1)+"deg");
+        s.style.setProperty("--s",  (0.7 + rnd()*1.5).toFixed(2));
+        s.style.left = (6 + rnd()*70).toFixed(1)+"%";
+        s.style.top  = (8 + rnd()*74).toFixed(1)+"%";
+      }
+      el.appendChild(s);
+    });
+  }
+  stage.appendChild(el);
+}
+
+function updateLine(idx, t){
+  if (idx < 0 || idx >= state.lyrics.length) return;
+  const line = state.lyrics[idx];
+  const next = state.lyrics[idx+1];
+  const end  = next ? next.t : line.t + 5;
+  const dur  = Math.max(0.4, end - line.t);
+  const reveal = Math.min(dur, Math.max(1.2, dur*0.9)); // fenêtre d'apparition
+  const p = Math.max(0, Math.min(1, (t - line.t) / reveal));
+
+  if (state.style === "type"){
+    const cs = stage.querySelectorAll(".c");
+    const nOn = Math.floor(p * cs.length);
+    cs.forEach((c,i)=> c.classList.toggle("on", i < nOn));
+    return;
+  }
+  if (state.style === "stack") return;
+
+  const ws = stage.querySelectorAll(".w");
+  ws.forEach((w,i)=>{
+    const wo = line.words[i];
+    let on;
+    if (wo && wo.t !== null) on = t >= wo.t;                 // LRC enrichi
+    else on = (i+0.55) / ws.length <= p || p >= 0.999;       // interpolation
+    w.classList.toggle("on", on);
+  });
+}
+
+/* =================== BOUCLE =================== */
+function findLine(t){
+  const L = state.lyrics;
+  let lo = 0, hi = L.length-1, ans = -1;
+  while (lo <= hi){
+    const mid = (lo+hi)>>1;
+    if (L[mid].t <= t){ ans = mid; lo = mid+1; } else hi = mid-1;
+  }
+  return ans;
+}
+
+function frame(now){
+  const t = nowSec();
+  document.documentElement.style.setProperty("--energy", readEnergy(now).toFixed(3));
+
+  if (state.lyrics.length){
+    const idx = findLine(t);
+    if (idx !== state.curLine){ state.curLine = idx; mountLine(idx); }
+    updateLine(idx, t);
+  }
+
+  if (!state.seeking){
+    const d = durSec();
+    $("seek").value = d ? Math.round(t/d*1000) : 0;
+    $("tCur").textContent = fmt(t);
+    $("tEnd").textContent = fmt(d);
+  }
+  if (state.demo && state.playing && t >= durSec()) demoStop();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+function fmt(s){
+  s = Math.max(0, Math.floor(s||0));
+  return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+}
+
+/* =================== COMMANDES =================== */
+$("btnMp3").onclick = ()=> $("fileMp3").click();
+$("btnLrc").onclick = ()=> $("fileLrc").click();
+
+$("fileMp3").onchange = e=>{
+  const f = e.target.files[0]; if (!f) return;
+  audio.src = URL.createObjectURL(f);
+  state.hasAudio = true; state.demo = false;
+  $("labMp3").textContent = f.name;
+  $("btnPlay").disabled = false;
+  setPlaying(false);
+};
+$("fileLrc").onchange = async e=>{
+  const f = e.target.files[0]; if (!f) return;
+  const txt = await f.text();
+  state.lyrics = parseLRC(txt);
+  state.curLine = -1;
+  $("labLrc").textContent = f.name + " — " + state.lyrics.length + " lignes";
+  if (!state.lyrics.length) $("labLrc").textContent = f.name + " — aucun horodatage [mm:ss] trouvé";
+  clearStage();
+};
+
+$("btnPlay").onclick = ()=>{
+  if (state.demo){ state.playing ? demoPause() : demoResume(); return; }
+  if (!state.hasAudio) return;
+  ensureAnalyser();
+  if (state.actx.state === "suspended") state.actx.resume();
+  if (audio.paused){ audio.play(); setPlaying(true); }
+  else { audio.pause(); setPlaying(false); }
+};
+audio.onended = ()=> setPlaying(false);
+
+function setPlaying(p){
+  state.playing = p;
+  $("btnPlay").textContent = p ? "❚❚ Pause" : "▶ Lecture";
+}
+
+/* --- démo --- */
+$("btnDemo").onclick = ()=>{
+  if (state.demo && state.playing){ demoStop(); return; }
+  if (state.hasAudio){ audio.pause(); }
+  state.demo = true;
+  state.lyrics = parseLRC(DEMO_LRC);
+  state.curLine = -1;
+  state.demoOffset = 0; state.demoT0 = performance.now();
+  $("labLrc").textContent = "démo intégrée — " + state.lyrics.length + " lignes";
+  $("btnPlay").disabled = false;
+  setPlaying(true);
+  $("btnDemo").textContent = "Arrêter la démo";
+};
+function demoPause(){ state.demoOffset = nowSec(); setPlaying(false); }
+function demoResume(){ state.demoT0 = performance.now(); setPlaying(true); }
+function demoStop(){
+  state.demo = false; setPlaying(false);
+  $("btnDemo").textContent = "Mode démo";
+  $("btnPlay").disabled = !state.hasAudio;
+}
+
+/* --- barre de progression --- */
+$("seek").addEventListener("input", ()=> state.seeking = true);
+$("seek").addEventListener("change", e=>{
+  const d = durSec(), t = e.target.value/1000*d;
+  if (state.demo){ state.demoOffset = t; state.demoT0 = performance.now(); }
+  else if (state.hasAudio) audio.currentTime = t;
+  state.curLine = -1;
+  state.seeking = false;
+});
+
+/* --- parallaxe 3D au pointeur (style verre liquide + reflet de la vitre) --- */
+speaker.addEventListener("pointermove", e=>{
+  const r = speaker.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width  - .5;   // -0.5 .. 0.5
+  const y = (e.clientY - r.top)  / r.height - .5;
+  speaker.style.setProperty("--tx", ( x * 6).toFixed(2) + "deg");
+  speaker.style.setProperty("--ty", (-y * 4).toFixed(2) + "deg");
+  speaker.style.setProperty("--px", ( x * 2).toFixed(2));
+});
+speaker.addEventListener("pointerleave", ()=>{
+  speaker.style.setProperty("--tx", "0deg");
+  speaker.style.setProperty("--ty", "0deg");
+  speaker.style.setProperty("--px", "0");
+});
+
+/* --- thème / plein écran --- */
+$("btnTheme").onclick = ()=>{
+  speaker.classList.toggle("dark");
+  $("btnTheme").textContent = speaker.classList.contains("dark") ? "Fond clair" : "Fond sombre";
+};
+$("btnFull").onclick = ()=>{
+  if (document.fullscreenElement) document.exitFullscreen();
+  else speaker.requestFullscreen();
+};
+
+/* --- sélecteur de styles --- */
+const stylesBox = $("styles");
+for (const s of STYLES){
+  const b = document.createElement("button");
+  b.className = "chip" + (s.id===state.style ? " on" : "");
+  b.textContent = s.name;
+  b.onclick = ()=>{
+    state.style = s.id;
+    stylesBox.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+    b.classList.add("on");
+    state.curLine = -1;   // force le remontage de la ligne
+    clearStage();
+  };
+  stylesBox.appendChild(b);
+}
+clearStage();
+stage.innerHTML = '<div class="idle">chargez un&nbsp;MP3 et un fichier&nbsp;.lrc<br>— ou lancez le <strong>mode démo</strong> pour prévisualiser les styles —</div>';
+</script>
+</body>
+</html>
